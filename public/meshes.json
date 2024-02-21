@@ -1,0 +1,92 @@
+[
+    {
+        "name": "Couch Center",
+        "src": "/meshes/couch_center.gltf",
+        "subMeshConfigurations": [
+            {
+                "subMeshName": "Cube007",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube008",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube033",
+                "materialName": "Black Fabric"
+            }
+        ]
+    },
+    {
+        "name": "Couch Chaiselong",
+        "src": "/meshes/couch_chaiselong.gltf",
+        "subMeshConfigurations": [
+            {
+                "subMeshName": "Cube007",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube008",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube033",
+                "materialName": "Black Fabric"
+            }
+        ]
+    },
+    {
+        "name": "Couch Corner",
+        "src": "/meshes/couch_corner.gltf",
+        "subMeshConfigurations": [
+            {
+                "subMeshName": "Cube007",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube008",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube033",
+                "materialName": "Black Fabric"
+            }
+        ]
+    },
+    {
+        "name": "Couch Left Side",
+        "src": "/meshes/couch_left_side.gltf",
+        "subMeshConfigurations": [
+            {
+                "subMeshName": "Cube007",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube008",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube033",
+                "materialName": "Black Fabric"
+            }
+        ]
+    },
+    {
+        "name": "Pillow",
+        "src": "/meshes/pillow.gltf",
+        "subMeshConfigurations": [
+            {
+                "subMeshName": "Cube007",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube008",
+                "materialName": "Black Fabric"
+            },
+            {
+                "subMeshName": "Cube033",
+                "materialName": "Black Fabric"
+            }
+        ]
+    }
+]
