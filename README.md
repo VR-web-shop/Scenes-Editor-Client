@@ -1,4 +1,5 @@
 # Web 3D Scene Editor
+Copy of https://github.com/niiicolai/Web-3D-Scene-Editor
 The 3D Scene Editor is a JavaScript-based tool for creating and manipulating 3D scenes. Built with modularity and extensibility in mind, the editor provides a flexible architecture that allows developers to customize and enhance its functionality through plugins and commands.
 
 ## Install
