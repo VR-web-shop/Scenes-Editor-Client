@@ -27,17 +27,12 @@
 <script setup>
 import { useEditor } from '../composables/useEditor.js'
 import { ViewConfiguration } from '../editor/editor.js'
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, defineExpose, computed, onMounted, onUnmounted } from 'vue'
 
 const canvas = ref(null)
 const editor = useEditor()
 
 const props = defineProps({
-    preload: {
-        type: Object,
-        required: false,
-        default: () => ({})
-    },
     viewConfiguration: {
         type: Object,
         required: false,
@@ -58,11 +53,15 @@ const isPaused = computed(() => editor.isState("paused"))
 
 onMounted(async () => {
     editor.init(canvas.value, props.viewConfiguration, props.frameRate)
-    editor.start(props.preload)
+    editor.start()
 })
 
 onUnmounted(() => {
     editor.stop()
+})
+
+defineExpose({
+    editor
 })
 </script>
 

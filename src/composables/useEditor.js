@@ -19,49 +19,15 @@ export const useEditor = () => {
         stateReader.value = new IsState(editor.value)
     }
 
-    const start = async (preload={}) => {
-        editor.value.start()
+    const start = async () => {
+        editor.value.start()        
+    }
+
+    const pause = () => {
         editor.value.pause()
+    }
 
-        if (preload.textures) {
-            for (const texture of preload.textures) {
-                await editor.value.invoke(new LoadTexture(texture.name, texture.src, texture.type))
-            }
-        }
-
-        if (preload.materials) {
-            for (const material of preload.materials) {
-                await editor.value.invoke(new LoadMaterial(material.name, material.type, material.textures))
-            }
-        }
-
-        if (preload.meshes) {
-            for (const mesh of preload.meshes) {
-                const subMeshConfigurations = mesh.subMeshConfigurations.map(subMeshConfiguration => {
-                    return new SubMeshConfiguration(subMeshConfiguration.subMeshName, subMeshConfiguration.materialName)
-                })
-
-                await editor.value.invoke(new LoadMesh(mesh.name, mesh.src, subMeshConfigurations))
-            }
-        }
-
-        if (preload.objects) {
-            for (const object of preload.objects) {
-                await editor.value.invoke(new CreateObject(object.name, object.position, object.rotation, object.scale))
-            }
-        }
-        
-        if (preload.scene) {
-            if (preload.scene.color) {
-                await editor.value.invoke(new SetSceneColor(preload.scene.color))
-            }
-            
-            if (preload.scene.cubeMap) {
-                const { path, px, nx, py, ny, pz, nz } = preload.scene.cubeMap
-                await editor.value.invoke(new SetSceneCubeMap(path, px, py, pz, nx, ny, nz))
-            }
-        }
-
+    const resume = () => {
         editor.value.resume()
     }
 
@@ -86,6 +52,8 @@ export const useEditor = () => {
         init,
         start,
         stop,
+        pause,
+        resume,
         isState,
         invoke,
         newReader
