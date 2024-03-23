@@ -8,7 +8,7 @@
 </template>
 
 <script setup>
-import ReadCache from '../editor/plugins/cache/readers/ReadCache.js';
+import ReadCache from '../../editor/plugins/cache/readers/ReadCache.js';
 
 import { computed } from 'vue';
 const props = defineProps({

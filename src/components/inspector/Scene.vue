@@ -21,9 +21,11 @@
 
 <script setup>
 import * as THREE from 'three';
-import ReadScene from '../editor/src/view/readers/ReadScene.js';
-import SetSceneColor from '../editor/src/view/commands/SetSceneColor.js';
-import { ref, computed } from 'vue';
+import ReadScene from '../../editor/src/view/readers/ReadScene.js';
+import SetSceneColor from '../../editor/src/view/commands/SetSceneColor.js';
+import { router } from '../../router.js';
+import { useSceneSDK } from '../../composables/useScenesSDK.js';
+import { ref, computed, onBeforeMount } from 'vue';
 
 const props = defineProps({
     editor: {
@@ -32,13 +34,17 @@ const props = defineProps({
     }
 });
 
+const { sdk } = useSceneSDK();
+const sceneUUID = router.currentRoute.value.params.sceneUUID;
 const readView = props.editor.newReader(ReadScene);
 const scene = computed(() => readView.read());
 
 const colorInput = ref(0x000000)
-const setBackgroundColor = () => {
-    const color = new THREE.Color(colorInput.value);
-    props.editor.invoke(new SetSceneColor(color));
+const setBackgroundColor = async () => {
+    const hex = colorInput.value;
+    await props.editor.invoke(new SetSceneColor(hex));
+    const { SceneBackground } = await sdk.api.SceneController.find({ uuid: sceneUUID }, { include: 'scene_backgrounds' });
+    sdk.api.SceneBackgroundController.update({ uuid: SceneBackground.uuid, hex });
 }
 
 const background = computed(() => {
@@ -55,5 +61,10 @@ const background = computed(() => {
     }
 
     return "Unknown background type";
+});
+
+onBeforeMount(async () => {
+    const { SceneBackground } = await sdk.api.SceneController.find({ uuid: sceneUUID }, { include: 'scene_backgrounds' });
+    colorInput.value = SceneBackground.hex;
 });
 </script>

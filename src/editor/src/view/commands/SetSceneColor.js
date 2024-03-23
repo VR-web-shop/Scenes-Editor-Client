@@ -11,17 +11,17 @@ export default class SetSceneColor extends Command {
     /**
      * @constructor
      * 
-     * @param {THREE.Color} color - The color to set
+     * @param {Object} hex - The color to set
      * @throws {Error} If color is not a THREE.Color
      */
-    constructor(color) {
+    constructor(hex) {
         super()
 
-        if (!(color instanceof THREE.Color)) {
-            throw new Error('Must be a THREE.Color')
+        if (!hex) {
+            throw new Error('hex is required')
         }
-        
-        this.color = color
+
+        this.color = new THREE.Color(hex)
     }
 
     /**

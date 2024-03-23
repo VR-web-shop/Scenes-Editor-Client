@@ -7,9 +7,11 @@
 </template>
 
 <script setup>
-import ReadCache from '../editor/plugins/cache/readers/ReadCache.js';
-
-import { computed } from 'vue';
+import ReadCache from '../../editor/plugins/cache/readers/ReadCache.js';
+import LoadTexture from '../../editor/plugins/cache/commands/LoadTexture.js';
+import LoadMaterial from '../../editor/plugins/cache/commands/LoadMaterial';
+import { useSceneSDK } from '../../composables/useScenesSDK.js';
+import { computed, onBeforeMount } from 'vue';
 const props = defineProps({
     editor: {
         type: Object,
@@ -19,4 +21,5 @@ const props = defineProps({
 
 const readMaterials = props.editor.newReader(ReadCache, 'materials');
 const materials = computed(() => readMaterials.read());
+
 </script>

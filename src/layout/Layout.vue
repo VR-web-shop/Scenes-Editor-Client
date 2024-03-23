@@ -13,7 +13,7 @@ const loginRef = ref()
 const { sdk, authenticated } = useAuthSDK()
 
 function checkAccess() {
-  const access = usePermission('admin:client:access');
+  const access = usePermission('scenes-editor:client:access');
   if (!access) {
     authenticated.value = false
     sdk.token.remove();

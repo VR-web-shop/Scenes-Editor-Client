@@ -52,7 +52,7 @@ export default class LoadTexture extends Command {
         const cacheKey = this.name
         const cached = cache.find(cacheKey)
         if (cached) {
-            throw new Error('Texture already loaded')
+            return
         }
 
         const textureLoader = new THREE.TextureLoader()

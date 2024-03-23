@@ -11,10 +11,6 @@
         <h2 class="text-sm uppercase font-bold text-white">
           Inspector
         </h2>
-
-        <button class="text-xs text-white bg-slate-600 px-2 py-1 rounded hover:bg-slate-700">
-          Add
-        </button>
       </div>
 
       <Tab title="Objects">
@@ -42,11 +38,11 @@
 </template>
 
 <script setup>
-import Textures from './Textures.vue';
-import Materials from './Materials.vue';
-import Meshes from './Meshes.vue';
-import Objects from './Objects.vue';
-import Scene from './Scene.vue';
+import Textures from './inspector/Textures.vue';
+import Materials from './inspector/Materials.vue';
+import Meshes from './inspector/Meshes.vue';
+import Objects from './inspector/Objects.vue';
+import Scene from './inspector/Scene.vue';
 import Tab from './Tab.vue';
 import { useAuthSDK } from '../composables/useAuthSDK.js';
 
@@ -56,7 +52,7 @@ const logout = async () => {
   authenticated.value = false
 }
 
-defineProps({
+const props = defineProps({
   editor: {
     type: Object,
     required: true

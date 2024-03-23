@@ -1,123 +1,108 @@
 <script setup>
-import * as THREE from 'three';
-
-import Restricted from '../components/Restricted.vue';
-import Loader from '../components/Loader.vue';
-import Tools from '../components/Tools.vue';
-import Settings from '../components/Settings.vue';
-import Inspector from '../components/Inspector.vue';
-import Editor from '../components/Editor.vue';
-
-import LoadTexture from '../editor/plugins/cache/commands/LoadTexture.js';
-import LoadMaterial from '../editor/plugins/cache/commands/LoadMaterial.js';
-
+import Paginator from '../components/Paginator.vue';
+import { router } from '../router.js';
+import { useToast } from '../composables/useToast.js';
 import { useSceneSDK } from '../composables/useScenesSDK.js';
-import { ViewConfiguration } from '../editor/editor.js';
 import { ref, onMounted } from 'vue';
 
-const editorRef = ref();
-const frameRate = 15;
-const viewConfiguration = new ViewConfiguration();
+const paginatorRef = ref()
+const scenes = ref([]);
+const toastCtrl = useToast()
+const { sdk } = useSceneSDK()
 
-onMounted(async () => {
-  viewConfiguration.sceneConfig.instance.background = new THREE.Color(0xCCCDDD);
-    const editor = editorRef.value.editor;
-    console.log('Preload:', editor)
-    editor.pause()
-
-    const { sdk } = useSceneSDK()
-
-    const textures = await sdk.api.textures.findAll({ limit: 100 })
-    for (const texture of textures.rows) {
-        await editor.invoke(new LoadTexture(texture.name, texture.source, texture.texture_type_name))
+const name = ref('')
+const description = ref('')
+const create = async () => {
+    if (!name.value) {
+        toastCtrl.add('Please enter a name for the scene', 5000, 'error')
+        return
     }
 
-    const materials = await sdk.api.materials.findAll({ limit: 100 })
-    console.log('Materials:', sdk.api)
-    for (const material of materials.rows) {
-        const materialTextures = await sdk.api.materialTextures.findAll({ limit: 4 })
-        const first = materialTextures.rows[0]
-        console.log('Material:', material, first.uuid)
-        const texture = await sdk.api.textures.find({ uuid: first.texture_uuid })
-        await editor.invoke(new LoadMaterial(material.name, material.material_type_name, [texture.name]))
+    if (!description.value) {
+        toastCtrl.add('Please enter a description for the scene', 5000, 'error')
+        return
     }
 
-    /*
-    if (preload.textures) {
-        for (const texture of preload.textures) {
-            await editor.value.invoke(new LoadTexture(texture.name, texture.src, texture.type))
-        }
-    }
+    const scene = await sdk.api.SceneController.create({
+        name: name.value,
+        description: description.value
+    })
+    name.value = ''
+    description.value = ''
+    router.push({ name: 'Editor', params: { sceneUUID: scene.uuid } })
+}
 
-    if (preload.materials) {
-        for (const material of preload.materials) {
-            await editor.value.invoke(new LoadMaterial(material.name, material.type, material.textures))
-        }
-    }
+const destroy = async (scene) => {
+    const confirm = window.confirm('Are you sure you want to delete this scene?')
+    if (!confirm) return
+    await sdk.api.SceneController.destroy({ uuid: scene.uuid })
+    await paginatorRef.value.paginator.refresh()
+    toastCtrl.add('Scene deleted', 5000, 'success')
+}
 
-    if (preload.meshes) {
-        for (const mesh of preload.meshes) {
-            const subMeshConfigurations = mesh.subMeshConfigurations.map(subMeshConfiguration => {
-                return new SubMeshConfiguration(subMeshConfiguration.subMeshName, subMeshConfiguration.materialName)
-            })
-
-            await editor.value.invoke(new LoadMesh(mesh.name, mesh.src, subMeshConfigurations))
-        }
-    }
-
-    if (preload.objects) {
-        for (const object of preload.objects) {
-            await editor.value.invoke(new CreateObject(object.name, object.position, object.rotation, object.scale))
-        }
-    }
-
-    if (preload.scene) {
-        if (preload.scene.color) {
-            await editor.value.invoke(new SetSceneColor(preload.scene.color))
-        }
-        
-        if (preload.scene.cubeMap) {
-            const { path, px, nx, py, ny, pz, nz } = preload.scene.cubeMap
-            await editor.value.invoke(new SetSceneCubeMap(path, px, py, pz, nx, ny, nz))
-        }
-    }*/
-
-    editor.resume()
-})
 </script>
 
 <template>
-    <Restricted :permissions="['scenes-editor:client:access']">
-        <div>
-            <Editor ref="editorRef" :viewConfiguration="viewConfiguration" :frameRate="frameRate">
-                <template v-slot:executing="{ editor }">
-                    <div class="bg-gray-500/50 shadow-md text-white fixed top-3 bottom-3 left-3 rounded">
-                        <Inspector :editor="editor" />
-                    </div>
-                    
-                    <div class="fixed top-0 right-0 p-3 flex flex-col gap-2 items-end">
-                        <Tools :editor="editor" />
-                        <Settings :editor="editor" />
-                    </div>    
-                </template>
+    <div class="">
+        <div class="p-3 border-b border-gray-800 bg-gray-600 text-white">
+            <h3 class="text-4xl text-center mb-3">
+                Scene Editor
+            </h3>
 
-                <template v-slot:initializing="{ editor }">
-                    <Loader title="Initializing Editor" message="Did you know you can upload your own 3D models?" />
-                </template>
-
-                <template v-slot:paused="{ editor }">
-                    <Loader title="Paused Editor" message="Processing Calculations. This may take a few seconds..." />
-                </template>
-
-                <template v-slot:exiting="{ editor }">
-                    <Loader title="Stopping Editor" message="This may take a few seconds..." />
-                </template>
-
-                <template v-slot:stopped="{ editor }">
-                    <Loader title="Editor Stopped" message="Reload the page to start the editor again." />
-                </template>
-
-            </Editor>
+            <p class="text-center">
+                Welcome to the scene editor. Here you can create new scenes or edit existing ones.
+            </p>
         </div>
-    </Restricted>
+
+        <div class="flex items-start justify-center gap-6 mt-6">
+            <div>
+                <h3 class="text-2xl text-center mb-3">
+                    Create A New Scene
+                </h3>
+
+                <input v-model="name" class="border border-gray-300 rounded-md p-1 w-full mb-1"
+                    placeholder="Scene Name" />
+
+                <textarea v-model="description" class="border border-gray-300 rounded-md p-1 h-72 w-full"
+                        placeholder="Scene Description" />
+                <div class="flex justify-center justify-between gap-1 mb-6">
+                    
+
+                    <button @click="create" class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">
+                        Create
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-2xl text-center mb-3">
+                    Select An Exisiting Scene
+                </h3>
+
+                <Paginator ref="paginatorRef" :findAllMethod="sdk.api.SceneController.findAll" :limit="5">
+                    <template #default="{ entities }">
+                        <div v-for="scene in entities" :key="scene.id">
+                            <div class="flex justify-between items-center rounded-md border border-gray-300 p-3 mb-1">
+                                <div class="capitalize">
+                                    {{ scene.name }}
+                                </div>
+                                
+                                <div class="flex items-center gap-1">
+                                    <router-link :to="{ name: 'Editor', params: { sceneUUID: scene.uuid } }"
+                                    class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Edit</router-link>
+
+                                    <button @click="destroy(scene)"
+                                        class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template #empty>
+                        <div>No scenes found</div>
+                    </template>
+                </Paginator>
+            </div>
+        </div>
+    </div>
 </template>

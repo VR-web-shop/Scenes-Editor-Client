@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import ReadObjects from '../editor/plugins/object/readers/ReadObjects.js';
+import ReadObjects from '../../editor/plugins/object/readers/ReadObjects.js';
 import { computed } from 'vue';
 
 const props = defineProps({

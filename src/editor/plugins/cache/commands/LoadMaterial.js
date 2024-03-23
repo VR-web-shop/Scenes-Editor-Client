@@ -59,7 +59,7 @@ export default class LoadMaterial extends Command {
         const cacheKey = this.name
         const cached = materialCache.find(cacheKey)
         if (cached) {
-            throw new Error('Material already loaded')
+            return
         }
 
         const textureCache = this.invoker.options.plugins.caches.find('textures')

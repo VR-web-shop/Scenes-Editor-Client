@@ -17,7 +17,7 @@ export class SubMeshConfiguration {
  * @class
  * @classdesc LoadMesh, loads a mesh from a file and creates a mesh
  */
-export default class LoadMesh extends Command {
+class LoadMesh extends Command {
 
     /**
      * @constructor
@@ -50,7 +50,7 @@ export default class LoadMesh extends Command {
                 throw new Error('Must be a SubMeshConfiguration')
             }
         }
-        
+
         this.name = name
         this.src = src
         this.subMeshConfigurations = subMeshConfigurations
@@ -97,3 +97,7 @@ export default class LoadMesh extends Command {
         meshCache.add(cacheKey, cacheValue)
     }
 }
+
+LoadMesh.SubMeshConfiguration = SubMeshConfiguration
+
+export default LoadMesh
