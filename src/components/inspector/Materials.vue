@@ -1,12 +1,13 @@
 <template>
     <div v-for="material in materials" :key="material.material.name">
-        <div class="flex items-center gap-3 overflow-hidden p-2">
+        <div class="flex items-center justify-between gap-3 overflow-hidden p-2">
             <p class="text-sm truncate">{{ material.material.name }}</p>
         </div>
     </div>
 </template>
 
 <script setup>
+import PenIcon from '../Icons/PenIcon.vue';
 import ReadCache from '../../editor/plugins/cache/readers/ReadCache.js';
 import LoadTexture from '../../editor/plugins/cache/commands/LoadTexture.js';
 import LoadMaterial from '../../editor/plugins/cache/commands/LoadMaterial';

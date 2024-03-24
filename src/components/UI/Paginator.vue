@@ -17,7 +17,7 @@
 </template>
 
 <script setup>
-import { usePaginator } from '../composables/usePaginator.js';
+import { usePaginator } from '../../composables/usePaginator.js';
 import { onBeforeMount, defineExpose } from 'vue'
 
 const props = defineProps({

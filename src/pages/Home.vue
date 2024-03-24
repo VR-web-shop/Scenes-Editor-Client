@@ -1,5 +1,5 @@
 <script setup>
-import Paginator from '../components/Paginator.vue';
+import Paginator from '../components/UI/Paginator.vue';
 import { router } from '../router.js';
 import { useToast } from '../composables/useToast.js';
 import { useSceneSDK } from '../composables/useScenesSDK.js';

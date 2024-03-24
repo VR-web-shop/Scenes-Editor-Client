@@ -98,7 +98,8 @@ export default class Selector extends BasePlugin {
     }
 
     onPointerDown = (object) => {
-        const intersect = Util.getIntersect(object, this.camera, this.objects.objects)
+        const object3Ds = this.objects.getObject3Ds()
+        const intersect = Util.getIntersect(object, this.camera, object3Ds)
         if (intersect && intersect !== this.selected) {
             this.selected = Util.findParentBeforeScene(intersect, this.scene)
             this.events.dispatchEvent('select', this.selected)

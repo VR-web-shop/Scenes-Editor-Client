@@ -1,11 +1,12 @@
 <script setup>
 import * as THREE from 'three';
 
-import Restricted from '../components/Restricted.vue';
-import Loader from '../components/Loader.vue';
-import Tools from '../components/Tools.vue';
-import Settings from '../components/Settings.vue';
-import Inspector from '../components/Inspector.vue';
+import Restricted from '../components/UI/Restricted.vue';
+import Loader from '../components/UI/Loader.vue';
+import Tools from '../components/top/Tools.vue';
+import Settings from '../components/top/Settings.vue';
+import Inspector from '../components/inspector/Inspector.vue';
+import Bottom from '../components/bottom/Bottom.vue';
 import Editor from '../components/Editor.vue';
 
 import LoadTexture from '../editor/plugins/cache/commands/LoadTexture.js';
@@ -32,68 +33,12 @@ const sceneCtrl = useScene()
 onMounted(async () => {
   viewConfiguration.sceneConfig.instance.background = new THREE.Color(0xCCCDDD);
     const editor = editorRef.value.editor;
-    console.log('Preload:', editor)
     editor.pause()
-
     sceneCtrl.setEditor(editor)
     await sceneCtrl.loadAllTextures()
     await sceneCtrl.loadAllMaterials()
     await sceneCtrl.loadAllMeshes()
     await sceneCtrl.loadScene(sceneUUID)
-
-    /*
-    const textures = await sdk.api.TextureController.findAll({ limit: 100 })
-    for (const texture of textures.rows) {
-        await editor.invoke(new LoadTexture(texture.name, texture.source, texture.texture_type_name))
-    }
-
-    const materials = await sdk.api.MaterialController.findAll({ limit: 100, include: 'Texture' })
-
-    for (const material of materials.rows) {
-        const textureNames = material.Texture.map(texture => texture.name)
-        await editor.invoke(new LoadMaterial(material.name, material.material_type_name, textureNames))
-    }*/
-
-    /*
-    if (preload.textures) {
-        for (const texture of preload.textures) {
-            await editor.value.invoke(new LoadTexture(texture.name, texture.src, texture.type))
-        }
-    }
-
-    if (preload.materials) {
-        for (const material of preload.materials) {
-            await editor.value.invoke(new LoadMaterial(material.name, material.type, material.textures))
-        }
-    }
-
-    if (preload.meshes) {
-        for (const mesh of preload.meshes) {
-            const subMeshConfigurations = mesh.subMeshConfigurations.map(subMeshConfiguration => {
-                return new SubMeshConfiguration(subMeshConfiguration.subMeshName, subMeshConfiguration.materialName)
-            })
-
-            await editor.value.invoke(new LoadMesh(mesh.name, mesh.src, subMeshConfigurations))
-        }
-    }
-
-    if (preload.objects) {
-        for (const object of preload.objects) {
-            await editor.value.invoke(new CreateObject(object.name, object.position, object.rotation, object.scale))
-        }
-    }
-
-    if (preload.scene) {
-        if (preload.scene.color) {
-            await editor.value.invoke(new SetSceneColor(preload.scene.color))
-        }
-        
-        if (preload.scene.cubeMap) {
-            const { path, px, nx, py, ny, pz, nz } = preload.scene.cubeMap
-            await editor.value.invoke(new SetSceneCubeMap(path, px, py, pz, nx, ny, nz))
-        }
-    }*/
-
     editor.resume()
 })
 </script>
@@ -111,6 +56,8 @@ onMounted(async () => {
                         <Tools :editor="editor" />
                         <Settings :editor="editor" />
                     </div>    
+
+                    <Bottom />
                 </template>
 
                 <template v-slot:initializing="{ editor }">

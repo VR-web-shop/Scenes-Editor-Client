@@ -15,15 +15,23 @@ const getLightHelper = (light) => {
 
     switch (light.type) {
         case 'DirectionalLight':
-            return new THREE.DirectionalLightHelper(light, 5)
-        case 'PointLight':
-            return new THREE.PointLightHelper(light, 5)
-        case 'SpotLight':
-            return new THREE.SpotLightHelper(light, 5)
-        case 'AmbientLight':
-            // No helper for ambient light
             return new THREE.Mesh(
                 new THREE.SphereGeometry(1, 16, 8),
+                new THREE.MeshBasicMaterial({ color: light.color })
+            )
+        case 'PointLight':
+            return new THREE.Mesh(
+                new THREE.SphereGeometry(.5, 16, 8),
+                new THREE.MeshBasicMaterial({ color: light.color })
+            )
+        case 'SpotLight':
+            return new THREE.Mesh(
+                new THREE.SphereGeometry(.5, 16, 8),
+                new THREE.MeshBasicMaterial({ color: light.color })
+            )
+        case 'AmbientLight':
+            return new THREE.Mesh(
+                new THREE.SphereGeometry(.2, 16, 8),
                 new THREE.MeshBasicMaterial({ color: light.color })
             )
         default:

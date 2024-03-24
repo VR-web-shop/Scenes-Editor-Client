@@ -4,6 +4,7 @@ import LoadMaterial from "../editor/plugins/cache/commands/LoadMaterial.js";
 import LoadTexture from "../editor/plugins/cache/commands/LoadTexture.js";
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
 
+import CreateLight from "../editor/plugins/object/commands/CreateLight.js";
 import CreateObject from "../editor/plugins/object/commands/CreateObject.js";
 import SetSceneColor from "../editor/src/view/commands/SetSceneColor.js";
 
@@ -18,7 +19,7 @@ export function useScene() {
 
     async function loadScene(sceneUUID) {
         if (!editor) throw new Error('Editor not set');
-        
+
         const { rows } = await sdk.api.SceneController.findAll({ limit: 100, where: { uuid: sceneUUID }, include: [
             { model: 'SceneCamera', include: ['Position', 'Rotation'] },
             { model: 'SceneLights', include: ['Position', 'Rotation'] },
@@ -26,7 +27,7 @@ export function useScene() {
             { model: 'SceneFloors', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
             { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder'] },
             { model: 'SceneCheckouts', include: ['Position', 'Rotation', 'Scale', 'SurfaceOffset', 'SurfaceSize', 'UIOffset', 'UIRotation', 'Mesh'] },
-            { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
+            { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh', 'Product'] },
             { model: 'SceneBackground' }
             
         ]});
@@ -43,30 +44,88 @@ export function useScene() {
         } = scene;
         
         await editor.invoke(new SetSceneColor(SceneBackground.hex));
-        await editor.invoke(new CreateObject(SceneBasket.Object.name, SceneBasket.Position, SceneBasket.Rotation, SceneBasket.Scale));
-        await editor.invoke(new CreateObject(SceneBasket.Placeholder.name, SceneBasket.Position, SceneBasket.Rotation, SceneBasket.Scale));
+        await editor.invoke(new CreateObject(
+            'Basket',
+            'Scene Basket', 
+            SceneBasket.uuid, 
+            SceneBasket.Object.name, 
+            SceneBasket.Position, 
+            SceneBasket.Rotation, 
+            SceneBasket.Scale,
+            {type: 'basket'}
+        ));
+        await editor.invoke(new CreateObject(
+            'BasketPlaceholder',
+            'Scene Basket Placeholder', 
+            SceneBasket.uuid+'-basket-placeholder', 
+            SceneBasket.Placeholder.name, 
+            SceneBasket.Position, 
+            SceneBasket.Rotation, 
+            SceneBasket.Scale,
+        ));
     
         for (const checkout of SceneCheckouts) {
-            await editor.invoke(new CreateObject(checkout.Mesh.name, checkout.Position, checkout.Rotation, checkout.Scale));
+            await editor.invoke(new CreateObject(
+                'Checkout',
+                checkout.name, 
+                checkout.uuid, 
+                checkout.Mesh.name, 
+                checkout.Position, 
+                checkout.Rotation, 
+                checkout.Scale
+            ));
         }
         
         for (const floor of SceneFloors) {
-            await editor.invoke(new CreateObject(floor.Mesh.name, floor.Position, floor.Rotation, floor.Scale));
+            await editor.invoke(new CreateObject(
+                'Floor',
+                floor.name, 
+                floor.uuid, 
+                floor.Mesh.name, 
+                floor.Position, 
+                floor.Rotation, 
+                floor.Scale
+            ));
         }
 
         for (const staticObject of SceneStaticObjects) {
-            await editor.invoke(new CreateObject(staticObject.Mesh.name, staticObject.Position, staticObject.Rotation, staticObject.Scale));
+            await editor.invoke(new CreateObject(
+                'StaticObject',
+                staticObject.name, 
+                staticObject.uuid, 
+                staticObject.Mesh.name, 
+                staticObject.Position, 
+                staticObject.Rotation, 
+                staticObject.Scale,
+            ));
         }
 
         for (const light of SceneLights) {
-            //await editor.invoke(new CreateObject(light.Mesh.name, light.Position, light.Rotation, light.Scale));
+            await editor.invoke(new CreateLight(
+                light.name, 
+                light.uuid, 
+                light.scene_light_type_name, 
+                light.intensity, 
+                light.hexColor, 
+                light.Position, 
+                light.Rotation, 
+                light.Scale
+            ));
         }
 
         for (const product of SceneProducts) {
             if (!product.Mesh) {
                 continue;
             }
-            await editor.invoke(new CreateObject(product.Mesh.name, product.Position, product.Rotation, product.Scale));
+            await editor.invoke(new CreateObject(
+                'Product',
+                product.Product.name, 
+                product.uuid,
+                product.Mesh.name, 
+                product.Position, 
+                product.Rotation, 
+                product.Scale
+            ));
         }
     }
 

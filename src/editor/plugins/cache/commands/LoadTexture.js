@@ -55,6 +55,17 @@ export default class LoadTexture extends Command {
             return
         }
 
+        // Check if the source exists
+        const response = await fetch(this.src)
+        if (!response.ok) {
+            throw new Error(`Texture not found: ${this.src}`)
+        }
+        // Check if the source is an image
+        const contentType = response.headers.get('content-type')
+        if (!contentType || !contentType.startsWith('image')) {
+            throw new Error(`Invalid texture source: ${this.src}`)
+        }
+
         const textureLoader = new THREE.TextureLoader()
         const texture = await textureLoader.loadAsync(this.src)
         texture.name = this.name

@@ -63,8 +63,18 @@ const background = computed(() => {
     return "Unknown background type";
 });
 
+const basket = ref(null);
+
 onBeforeMount(async () => {
-    const { SceneBackground } = await sdk.api.SceneController.find({ uuid: sceneUUID }, { include: 'scene_backgrounds' });
+    const { rows } = await sdk.api.SceneController.findAll({ 
+        limit: 100,
+        where: { uuid: sceneUUID }, 
+        include: [
+            { model: 'SceneBackground' },
+            { model: 'SceneBasket', include: ['Object']}
+        ]
+    });
+    const { SceneBackground, SceneBasket } = rows[0];
     colorInput.value = SceneBackground.hex;
 });
 </script>

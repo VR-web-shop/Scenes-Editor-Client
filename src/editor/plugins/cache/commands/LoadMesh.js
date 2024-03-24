@@ -70,7 +70,7 @@ class LoadMesh extends Command {
         const cacheKey = this.name
         const cached = meshCache.find(cacheKey)
         if (cached) {
-            throw new Error('Mesh already loaded')
+            return
         }
         
         const materialCache = this.invoker.options.plugins.caches.find('materials')

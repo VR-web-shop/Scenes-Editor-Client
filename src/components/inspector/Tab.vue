@@ -1,6 +1,6 @@
 <template>
     <div>
-        <button @click="toggle" class="w-full text-sm uppercase py-2"
+        <button @click="toggle" class="w-full text-sm px-3 py-2"
                 :class="tabs.isTab(title) ? 'bg-gray-800/50 text-white' : 'bg-black/50 text-white hover:bg-gray-800'">
             {{ title }}
         </button>
@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { useTabs } from '../composables/tabs.js';
+import { useTabs } from '../../composables/tabs.js';
 const props = defineProps({
     title: {
         type: String,

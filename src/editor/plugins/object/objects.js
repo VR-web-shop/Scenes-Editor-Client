@@ -60,7 +60,7 @@ export default class Objects extends BasePlugin {
      * @throws {Error} if object is not a THREE.Object3D
      * @throws {Error} if object is a THREE.Light and unable to find helper
      */
-    add(object) {
+    add(object, options = {}) {
         if (!(object instanceof THREE.Object3D)) {
             throw new Error('Must be a THREE.Object3D')
         }
@@ -74,7 +74,7 @@ export default class Objects extends BasePlugin {
             object.name = object.type + ' ' + (this.objects.length + 1)
         }
 
-        this.objects.push(object)
+        this.objects.push({object, options})
         this.scene.add(object)
 
         return object
@@ -93,12 +93,16 @@ export default class Objects extends BasePlugin {
             throw new Error('Must be a THREE.Object3D')
         }
 
-        const index = this.objects.indexOf(object)
+        const index = this.objects.findIndex(obj => obj.object === object)
         if (index === -1) {
             throw new Error('Unable to find object')
         }
 
         this.objects.splice(index, 1)
         this.scene.remove(object)
+    }
+
+    getObject3Ds() {
+        return this.objects.map(({ object }) => object)
     }
 }
