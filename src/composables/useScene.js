@@ -8,6 +8,8 @@ import CreateLight from "../editor/plugins/object/commands/CreateLight.js";
 import CreateObject from "../editor/plugins/object/commands/CreateObject.js";
 import SetSceneColor from "../editor/src/view/commands/SetSceneColor.js";
 
+import ReadObjects from "../editor/plugins/object/readers/ReadObjects.js";
+
 const { sdk } = useSceneSDK();
 
 export function useScene() {
@@ -15,6 +17,7 @@ export function useScene() {
 
     function setEditor(newEditor) {
         editor = newEditor;
+        return this;
     }
 
     async function loadScene(sceneUUID) {
@@ -25,7 +28,7 @@ export function useScene() {
             { model: 'SceneLights', include: ['Position', 'Rotation'] },
             { model: 'SceneStaticObjects', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
             { model: 'SceneFloors', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
-            { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder'] },
+            { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder', 'ObjectOffset', 'PlaceholderOffset'] },
             { model: 'SceneCheckouts', include: ['Position', 'Rotation', 'Scale', 'SurfaceOffset', 'SurfaceSize', 'UIOffset', 'UIRotation', 'Mesh'] },
             { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh', 'Product'] },
             { model: 'SceneBackground' }
@@ -48,20 +51,21 @@ export function useScene() {
             'Basket',
             'Scene Basket', 
             SceneBasket.uuid, 
-            SceneBasket.Object.name, 
+            SceneBasket.Object.uuid, 
             SceneBasket.Position, 
             SceneBasket.Rotation, 
             SceneBasket.Scale,
-            {type: 'basket'}
+            SceneBasket
         ));
         await editor.invoke(new CreateObject(
             'BasketPlaceholder',
             'Scene Basket Placeholder', 
             SceneBasket.uuid+'-basket-placeholder', 
-            SceneBasket.Placeholder.name, 
+            SceneBasket.Placeholder.uuid, 
             SceneBasket.Position, 
             SceneBasket.Rotation, 
             SceneBasket.Scale,
+            SceneBasket
         ));
     
         for (const checkout of SceneCheckouts) {
@@ -69,10 +73,11 @@ export function useScene() {
                 'Checkout',
                 checkout.name, 
                 checkout.uuid, 
-                checkout.Mesh.name, 
+                checkout.Mesh.uuid, 
                 checkout.Position, 
                 checkout.Rotation, 
-                checkout.Scale
+                checkout.Scale,
+                checkout
             ));
         }
         
@@ -81,10 +86,11 @@ export function useScene() {
                 'Floor',
                 floor.name, 
                 floor.uuid, 
-                floor.Mesh.name, 
+                floor.Mesh.uuid, 
                 floor.Position, 
                 floor.Rotation, 
-                floor.Scale
+                floor.Scale,
+                floor
             ));
         }
 
@@ -93,23 +99,39 @@ export function useScene() {
                 'StaticObject',
                 staticObject.name, 
                 staticObject.uuid, 
-                staticObject.Mesh.name, 
+                staticObject.Mesh.uuid, 
                 staticObject.Position, 
                 staticObject.Rotation, 
                 staticObject.Scale,
+                staticObject
             ));
         }
 
-        for (const light of SceneLights) {
+        if (SceneLights.length > 0) {
+            for (const light of SceneLights) {
+                await editor.invoke(new CreateLight(
+                    light.name, 
+                    light.uuid, 
+                    light.scene_light_type_name, 
+                    light.intensity, 
+                    light.hexColor, 
+                    light.Position, 
+                    light.Rotation, 
+                    light.Scale,
+                    light
+                ));
+            }
+        } else {
             await editor.invoke(new CreateLight(
-                light.name, 
-                light.uuid, 
-                light.scene_light_type_name, 
-                light.intensity, 
-                light.hexColor, 
-                light.Position, 
-                light.Rotation, 
-                light.Scale
+                'Default Light', 
+                'default-light', 
+                'AmbientLight', 
+                1, 
+                '#ffffff', 
+                {x: 0, y: 10, z: 0}, 
+                {x: 0, y: 0, z: 0}, 
+                {x: 1, y: 1, z: 1},
+                {}
             ));
         }
 
@@ -121,11 +143,50 @@ export function useScene() {
                 'Product',
                 product.Product.name, 
                 product.uuid,
-                product.Mesh.name, 
+                product.Mesh.uuid, 
                 product.Position, 
                 product.Rotation, 
-                product.Scale
+                product.Scale,
+                product
             ));
+        }
+    }
+
+    async function saveScene(sceneUUID) {
+        if (!editor) throw new Error('Editor not set');
+
+        const reader = await editor.newReader(ReadObjects, editor);
+        const objects = await reader.read();
+        for (let object of objects) {
+            const object3D = object.object;
+            const { position, rotation, scale } = object3D;
+            const { objectType, id, recordData } = object.options;
+
+            if (objectType === 'Light' || 
+                objectType === 'Product' || 
+                objectType === 'Floor' || 
+                objectType === 'Checkout' || 
+                objectType === 'StaticObject') {
+                const positionUUID = recordData.Position.uuid;
+                const rotationUUID = recordData.Rotation.uuid;
+
+                await sdk.api.Vector3DController.update({
+                    uuid: positionUUID,
+                    x: position.x,
+                    y: position.y,
+                    z: position.z
+                });
+
+                await sdk.api.Vector3DController.update({
+                    uuid: rotationUUID,
+                    x: rotation.x,
+                    y: rotation.y,
+                    z: rotation.z
+                });
+            }
+            console.log({
+                position, rotation, scale, objectType, id, recordData
+            });
         }
     }
 
@@ -162,7 +223,7 @@ export function useScene() {
         const { rows, pages } = await sdk.api.MeshController.findAll({ page, limit: 100, include: [{ model:'Material'}] });
         for (const mesh of rows) {
             const submeshes = mesh.Material.map(m => (new LoadMesh.SubMeshConfiguration(m.MeshMaterial.submesh_name, m.name)));
-            await editor.invoke(new LoadMesh(mesh.name, `${mesh.source}`, submeshes));
+            await editor.invoke(new LoadMesh(mesh.uuid, `${mesh.source}`, submeshes));
         }
     
         if (page < pages) {
@@ -172,6 +233,7 @@ export function useScene() {
 
     return { 
         setEditor, 
+        saveScene,
         loadScene,
         loadAllMaterials, 
         loadAllTextures, 

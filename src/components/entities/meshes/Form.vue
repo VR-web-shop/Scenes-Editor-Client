@@ -50,7 +50,9 @@
             </Paginator>
         </div>
 
-        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">Create</button>
+        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">
+            {{ uuid ? 'Update' : 'Create' }}
+        </button>
     </form>
 </template>
 
@@ -60,18 +62,26 @@ import LoadMesh from '../../../editor/plugins/cache/commands/LoadMesh.js';
 import { useEditor } from '../../../composables/useEditor.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useToast } from '../../../composables/useToast.js';
-import { ref } from 'vue';
+import { ref, onBeforeMount } from 'vue';
+
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null
+    }
+})
 
 const { sdk } = useSceneSDK();
 const toastCtrl = useToast();
 const editorCtrl = useEditor();
-const name = ref('');
-const source = ref('');
+const name = ref(props.data ? props.data.name : '');
+const source = ref(props.data ? props.data.source : '');
+const uuid = ref(props.data ? props.data.uuid : '');
 const submeshConfigurations = ref([]);
 
-const addMaterial = (material) => {
+const addMaterial = (material, submesh_name='') => {
     const id = submeshConfigurations.value.length + 1;
-    submeshConfigurations.value.push({id, submesh_name: '', material});
+    submeshConfigurations.value.push({id, submesh_name, material});
 }
 
 const removeConfig = (config) => {
@@ -96,29 +106,65 @@ const submit = async () => {
         }
     }
 
-    const mesh = await sdk.api.MeshController.create({
-        name: name.value,
-        source: source.value
-    });
+    if (uuid.value) {
 
-    for (const submesh of submeshConfigurations.value) {
-        await sdk.api.MeshMaterialController.create({
-            mesh_uuid: mesh.uuid,
-            material_uuid: submesh.material.uuid,
-            submesh_name: submesh.submesh_name
+        const mesh = await sdk.api.MeshController.update({
+            uuid: uuid.value,
+            name: name.value,
+            source: source.value
         });
+
+        const existingSubmeshes = await sdk.api.MeshMaterialController.findAll({ limit: 1000, where: { mesh_uuid: mesh.uuid } });
+        for (const submesh of existingSubmeshes.rows) {
+            await sdk.api.MeshMaterialController.destroy({ uuid: submesh.uuid });
+        }
+
+        for (const submesh of submeshConfigurations.value) {
+            await sdk.api.MeshMaterialController.create({
+                mesh_uuid: mesh.uuid,
+                material_uuid: submesh.material.uuid,
+                submesh_name: submesh.submesh_name
+            });
+        }
+
+        console.log('Todo: update command')
+
+        toastCtrl.add('Mesh updated successfully');
+    } else {
+        const mesh = await sdk.api.MeshController.create({
+            name: name.value,
+            source: source.value
+        });
+
+        for (const submesh of submeshConfigurations.value) {
+            await sdk.api.MeshMaterialController.create({
+                mesh_uuid: mesh.uuid,
+                material_uuid: submesh.material.uuid,
+                submesh_name: submesh.submesh_name
+            });
+        }
+
+        const submeshes = submeshConfigurations.value.map((submesh) => {
+            return new LoadMesh.SubMeshConfiguration(submesh.submesh_name, submesh.material.name);
+        });
+        await editorCtrl.invoke(new LoadMesh(mesh.uuid, mesh.source, submeshes));
+
+        name.value = '';
+        source.value = '';
+        submeshConfigurations.value = [];
+
+        toastCtrl.add('Mesh created successfully');
     }
-
-    const submeshes = submeshConfigurations.value.map((submesh) => {
-        return new LoadMesh.SubMeshConfiguration(submesh.submesh_name, submesh.material.name);
-    });
-    await editorCtrl.invoke(new LoadMesh(mesh.name, mesh.source, submeshes));
-
-    name.value = '';
-    source.value = '';
-    submeshConfigurations.value = [];
-
-    toastCtrl.add('Mesh created successfully');
 }
 
+onBeforeMount(async () => {
+    if (uuid.value) {
+        const { rows } = await sdk.api.MeshMaterialController.findAll({ limit: 1000, where: { mesh_uuid: uuid.value }, include: [
+            { model: 'Material' }
+        ]});
+        for (const meshMaterial of rows) {
+            addMaterial(meshMaterial.Material, meshMaterial.submesh_name);
+        }
+    }
+});
 </script>

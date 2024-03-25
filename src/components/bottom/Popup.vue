@@ -11,7 +11,7 @@
         </div>
 
         <div v-if="isOpen">
-            <slot />
+            <slot :data="popup.data" />
         </div>
     </div>
 </template>
@@ -24,23 +24,27 @@ const props = defineProps({
     title: {
         type: String,
         required: true
+    },
+    id: {
+        type: String,
+        required: true
     }
 })
 
 const popups = usePopups()
 const popup = ref()
-const isOpen = computed(() => popups.isOpen(props.title))
-const isClosed = computed(() => popups.isClosed(props.title))
-const minimize = () => popups.minimize(props.title)
-const close = () => popups.close(props.title)
+const isOpen = computed(() => popups.isOpen(props.id))
+const isClosed = computed(() => popups.isClosed(props.id))
+const minimize = () => popups.minimize(props.id)
+const close = () => popups.close(props.id)
 
 onBeforeMount(() => {
-    popups.addPopup(props.title)
-    popup.value = popups.getPopup(props.title)
+    popups.addPopup(props.id)
+    popup.value = popups.getPopup(props.id)
 })
 
 onBeforeUnmount(() => {
-    popups.removePopup(props.title)
+    popups.removePopup(props.id)
     popup.value = null
 })
 </script>

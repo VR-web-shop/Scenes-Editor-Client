@@ -48,7 +48,7 @@ onMounted(async () => {
         <div>
             <Editor ref="editorRef" :viewConfiguration="viewConfiguration" :frameRate="frameRate">
                 <template v-slot:executing="{ editor }">
-                    <div class="bg-gray-500/50 shadow-md text-white fixed top-3 bottom-3 left-3 rounded">
+                    <div class="fixed top-3 bottom-3 left-3 rounded">
                         <Inspector :editor="editor" />
                     </div>
                     

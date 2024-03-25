@@ -1,16 +1,18 @@
 import { ref } from 'vue'
 
-export const usePaginator = (findAllMethod, limitInitial=10) => {
+export const usePaginator = (findAllMethod, limitInitial=10, include=null) => {
     const entities = ref([])
     const limit = ref(limitInitial)
     const page = ref(1)
     const pages = ref(1)
 
     const refresh = async () => {
-        const res = await findAllMethod({
+        const params = {
             page: page.value,
             limit: limit.value
-        });
+        }
+        if (include) params.include = include
+        const res = await findAllMethod(params);
 
         entities.value = res.rows;
         pages.value = res.pages;

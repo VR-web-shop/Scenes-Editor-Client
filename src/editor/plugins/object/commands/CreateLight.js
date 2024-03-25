@@ -83,6 +83,7 @@ export default class CreateLight extends Command {
             labelName: this.labelName, 
             id: this.id, 
             objectType: 'Light', 
+            lightType: this.type,
             recordData: this.recordData 
         })
     }

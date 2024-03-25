@@ -24,7 +24,9 @@
             </Paginator>
         </div>
 
-        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">Create</button>
+        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">
+            {{ uuid ? 'Update' : 'Create' }}
+        </button>
     </form>
 </template>
 
@@ -32,23 +34,36 @@
 import Paginator from '../../UI/Paginator.vue';
 import VectorInput from '../../UI/VectorInput.vue';
 import CreateObject from '../../../editor/plugins/object/commands/CreateObject.js';
+import UpdateObject from '../../../editor/plugins/object/commands/UpdateObject.js';
 import { useEditor } from '../../../composables/useEditor.js';
 import { router } from '../../../router.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useToast } from '../../../composables/useToast.js';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null
+    }
+})
 
 const { sdk } = useSceneSDK();
 const editorCtrl = useEditor();
 const toastCtrl = useToast();
-const sceneUUID = router.currentRoute.value.params.sceneUUID;
-const name = ref('');
-const mesh = ref(null);
 
-const surfaceOffsetRef = ref(null);
-const surfaceSizeRef = ref(null);
-const uiOffsetRef = ref(null);
-const uiRotationRef = ref(null);
+const sceneUUID = router.currentRoute.value.params.sceneUUID;
+const name = ref(props.data ? props.data.recordData.name : '');
+const uuid = ref(props.data ? props.data.recordData.uuid : '');
+const mesh = ref(props.data ? {
+    uuid: props.data.recordData.Mesh.uuid,
+    name: props.data.recordData.Mesh.name
+} : '');
+
+const surfaceOffsetRef = ref();
+const surfaceSizeRef = ref();
+const uiOffsetRef = ref();
+const uiRotationRef = ref();
 
 const submit = async () => {
     if (!name.value) {
@@ -79,31 +94,99 @@ const submit = async () => {
     if (uiRotationValues.y === 0) uiRotationValues.y = 0.0001;
     if (uiRotationValues.z === 0) uiRotationValues.z = 0.0001;
     
-    const surfaceOffset = await sdk.api.Vector3DController.create(surfaceOffsetValues);
-    const surfaceSize = await sdk.api.Vector3DController.create(surfaceSizeValues);
-    const uiOffset = await sdk.api.Vector3DController.create(uiOffsetValues);
-    const uiRotation = await sdk.api.Vector3DController.create(uiRotationValues);
-    
-    const checkout = await sdk.api.SceneCheckoutController.create({
-        name: name.value,
-        mesh_uuid: mesh.value.uuid,
-        surface_offset_uuid: surfaceOffset.uuid,
-        surface_size_uuid: surfaceSize.uuid,
-        ui_offset_uuid: uiOffset.uuid,
-        ui_rotation_uuid: uiRotation.uuid,
-        scene_uuid: sceneUUID
-    });
+    if (uuid.value) {
+        await sdk.api.SceneCheckoutController.update({
+            uuid: uuid.value,
+            name: name.value,
+            mesh_uuid: mesh.value.uuid
+        });
 
-    await editorCtrl.invoke(new CreateObject(
-        'Checkout',
-        name.value,
-        checkout.uuid,
-        mesh.value.name
-    ));
+        await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.SurfaceOffset.uuid,
+            x: surfaceOffsetValues.x,
+            y: surfaceOffsetValues.y,
+            z: surfaceOffsetValues.z
+        });
 
-    name.value = '';
-    mesh.value = '';
+        await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.SurfaceSize.uuid,
+            x: surfaceSizeValues.x,
+            y: surfaceSizeValues.y,
+            z: surfaceSizeValues.z
+        });
 
-    toastCtrl.add('Checkout created', 5000, 'success');
+        await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.UIOffset.uuid,
+            x: uiOffsetValues.x,
+            y: uiOffsetValues.y,
+            z: uiOffsetValues.z
+        });
+
+        await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.UIRotation.uuid,
+            x: uiRotationValues.x,
+            y: uiRotationValues.y,
+            z: uiRotationValues.z
+        });
+
+        const { rows } = await sdk.api.SceneCheckoutController.findAll({
+            limit: 1,
+            where: { uuid: uuid.value },
+            include: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'SurfaceOffset' },
+                { model: 'SurfaceSize' },
+                { model: 'UIOffset' },
+                { model: 'UIRotation' },
+                { model: 'Mesh' }
+            ]     
+        })
+        console.log(rows[0])
+        await editorCtrl.invoke(new UpdateObject(
+            uuid.value,
+            name.value,
+            mesh.value.uuid,
+            rows[0]
+        ));
+
+        toastCtrl.add('Checkout updated', 5000, 'success');
+    } else {
+        const surfaceOffset = await sdk.api.Vector3DController.create(surfaceOffsetValues);
+        const surfaceSize = await sdk.api.Vector3DController.create(surfaceSizeValues);
+        const uiOffset = await sdk.api.Vector3DController.create(uiOffsetValues);
+        const uiRotation = await sdk.api.Vector3DController.create(uiRotationValues);
+        
+        const checkout = await sdk.api.SceneCheckoutController.create({
+            name: name.value,
+            mesh_uuid: mesh.value.uuid,
+            surface_offset_uuid: surfaceOffset.uuid,
+            surface_size_uuid: surfaceSize.uuid,
+            ui_offset_uuid: uiOffset.uuid,
+            ui_rotation_uuid: uiRotation.uuid,
+            scene_uuid: sceneUUID
+        });
+
+        await editorCtrl.invoke(new CreateObject(
+            'Checkout',
+            name.value,
+            checkout.uuid,
+            mesh.value.uuid
+        ));
+
+        name.value = '';
+        mesh.value = '';
+
+        toastCtrl.add('Checkout created', 5000, 'success');
+    }
 }
+
+onMounted(async () => {
+    if (!props.data) return;
+    surfaceOffsetRef.value.setVector(props.data.recordData.SurfaceOffset);
+    surfaceSizeRef.value.setVector(props.data.recordData.SurfaceSize);
+    uiOffsetRef.value.setVector(props.data.recordData.UIOffset);
+    uiRotationRef.value.setVector(props.data.recordData.UIRotation);
+})
 </script>

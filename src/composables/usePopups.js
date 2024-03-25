@@ -48,7 +48,12 @@ export const usePopups = () => {
         return popup.state === state
     }
 
-    const open = (name) => setState(name, STATE.OPEN)
+    const open = (name, data=null) => {
+        const popup = getPopup(name)
+        if (!popup) throw new Error(`Popup with name ${name} does not exist`)
+        if (data) popup.data = data
+        setState(name, STATE.OPEN)
+    }
     const minimize = (name) => {
         if (hasState(name, STATE.OPEN)) setState(name, STATE.MINIMIZED)
         else setState(name, STATE.OPEN)

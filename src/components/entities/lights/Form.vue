@@ -19,27 +19,38 @@
             </option>
         </select>
 
-        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">Create</button>
+        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">
+            {{ uuid ? 'Update' : 'Create' }}
+        </button>
     </form>
 </template>
 
 <script setup>
 import CreateLight from '../../../editor/plugins/object/commands/CreateLight.js';
+import UpdateLight from '../../../editor/plugins/object/commands/UpdateLight.js';
 import { useEditor } from '../../../composables/useEditor.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useToast } from '../../../composables/useToast.js';
 import { ref, onBeforeMount } from 'vue';
 import { router } from '../../../router.js';
 
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null
+    }
+})
+
 const { sdk } = useSceneSDK();
 const editorCtrl = useEditor();
 const toastCtrl = useToast();
 const lightTypes = ref([]);
 const sceneUUID = router.currentRoute.value.params.sceneUUID;
-const name = ref('');
-const type = ref('');
-const color = ref('');
-const intensity = ref(1);
+const name = ref(props.data ? props.data.recordData.name : '');
+const type = ref(props.data ? props.data.recordData.scene_light_type_name : '');
+const color = ref(props.data ? props.data.recordData.hexColor : '');
+const intensity = ref(props.data ? props.data.recordData.intensity : 1);
+const uuid = ref(props.data ? props.data.recordData.uuid : '');
 
 const submit = async () => {
     if (!name.value) {
@@ -62,26 +73,56 @@ const submit = async () => {
         return        
     }
 
-    const light = await sdk.api.SceneLightController.create({
-        name: name.value,
-        scene_light_type_name: type.value,
-        intensity: intensity.value,
-        hexColor: color.value,
-        scene_uuid: sceneUUID
-    });
+    if (uuid.value) {
+        await sdk.api.SceneLightController.update({
+            uuid: uuid.value,
+            name: name.value,
+            scene_light_type_name: type.value,
+            intensity: intensity.value,
+            hexColor: color.value
+        });UpdateLight
 
-    await editorCtrl.invoke(new CreateLight(
-        name.value,
-        light.uuid,
-        type.value,
-        intensity.value,
-        color.value
-    ));
-    
-    name.value = '';
-    type.value = '';
-    intensity.value = 1;
-    toastCtrl.add('Light created', 5000, 'success');
+        const { rows } = await sdk.api.SceneLightController.findAll({
+            limit: 1,
+            where: { uuid: uuid.value },
+            include: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+            ]     
+        })
+
+        await editorCtrl.invoke(new UpdateLight(
+            uuid.value,
+            name.value,
+            type.value,
+            intensity.value,
+            color.value,
+            rows[0]
+        ));
+        
+        toastCtrl.add('Light updated', 5000, 'success');
+    } else {
+        const light = await sdk.api.SceneLightController.create({
+            name: name.value,
+            scene_light_type_name: type.value,
+            intensity: intensity.value,
+            hexColor: color.value,
+            scene_uuid: sceneUUID
+        });
+
+        await editorCtrl.invoke(new CreateLight(
+            name.value,
+            light.uuid,
+            type.value,
+            intensity.value,
+            color.value
+        ));
+        
+        name.value = '';
+        type.value = '';
+        intensity.value = 1;
+        toastCtrl.add('Light created', 5000, 'success');
+    }
 }
 
 onBeforeMount(async () => {

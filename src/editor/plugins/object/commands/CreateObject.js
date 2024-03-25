@@ -89,6 +89,7 @@ export default class CreateObject extends Command {
             labelName: this.labelName, 
             id: this.id, 
             objectType: this.objectType, 
+            meshName: this.meshName,
             recordData: this.recordData 
         })
     }

@@ -19,25 +19,39 @@
             </Paginator>
         </div>
 
-        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">Create</button>
+        <button type="submit" class="border border-gray-300 px-3 py-1 rounded">
+            {{ uuid ? 'Update' : 'Create' }}
+        </button>
     </form>
 </template>
 
 <script setup>
 import Paginator from '../../UI/Paginator.vue';
 import CreateObject from '../../../editor/plugins/object/commands/CreateObject.js';
+import UpdateObject from '../../../editor/plugins/object/commands/UpdateObject.js';
 import { useEditor } from '../../../composables/useEditor.js';
 import { router } from '../../../router.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useToast } from '../../../composables/useToast.js';
 import { ref } from 'vue';
 
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null
+    }
+})
+
 const { sdk } = useSceneSDK();
 const editorCtrl = useEditor();
 const toastCtrl = useToast();
 const sceneUUID = router.currentRoute.value.params.sceneUUID;
-const name = ref('');
-const mesh = ref(null);
+const name = ref(props.data ? props.data.recordData.name : '');
+const uuid = ref(props.data ? props.data.recordData.uuid : '');
+const mesh = ref(props.data ? {
+    uuid: props.data.recordData.Mesh.uuid,
+    name: props.data.recordData.Mesh.name
+} : '');
 
 const submit = async () => {
     if (!name.value) {
@@ -50,22 +64,50 @@ const submit = async () => {
         return
     }
 
-    const floor = await sdk.api.SceneFloorController.create({
-        name: name.value,
-        mesh_uuid: mesh.value.uuid,
-        scene_uuid: sceneUUID
-    });
+    if (uuid.value) {
+        await sdk.api.SceneFloorController.update({
+            uuid: uuid.value,
+            name: name.value,
+            mesh_uuid: mesh.value.uuid
+        });
+        
+        const { rows } = await sdk.api.SceneFloorController.findAll({
+            limit: 1,
+            where: { uuid: uuid.value },
+            include: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'Mesh' },
+            ]     
+        })
 
-    await editorCtrl.invoke(new CreateObject(
-        'Floor',
-        name.value,
-        floor.uuid,
-        mesh.value.name
-    ));
+        await editorCtrl.invoke(new UpdateObject(
+            uuid.value,
+            name.value,
+            mesh.value.uuid,
+            rows[0]
+        ));
 
-    name.value = '';
-    mesh.value = '';
+        toastCtrl.add('Floor updated', 5000, 'success');
+    } else {
+        const floor = await sdk.api.SceneFloorController.create({
+            name: name.value,
+            mesh_uuid: mesh.value.uuid,
+            scene_uuid: sceneUUID
+        });
 
-    toastCtrl.add('Floor created', 5000, 'success');
+        await editorCtrl.invoke(new CreateObject(
+            'Floor',
+            name.value,
+            floor.uuid,
+            mesh.value.uuid
+        ));
+
+        name.value = '';
+        mesh.value = '';
+
+        toastCtrl.add('Floor created', 5000, 'success');
+    }
 }
 </script>

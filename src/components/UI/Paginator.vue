@@ -29,12 +29,18 @@ const props = defineProps({
         type: Number,
         required: false,
         default: 10
+    },
+    include: {
+        type: Array,
+        required: false,
+        default: () => []
     }
 });
 
 const paginator = usePaginator(
     props.findAllMethod,
-    props.limit
+    props.limit,
+    props.include
 );
 
 onBeforeMount(async () => {

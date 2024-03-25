@@ -33,16 +33,7 @@ export default class ViewConfiguration {
         }
 
         this.lightConfig = lightConfig || {
-            instances: [
-                {
-                    instance: new THREE.DirectionalLight(0xffffff, 1),
-                    position: new THREE.Vector3(0, 10, 0),
-                },
-                {
-                    instance: new THREE.AmbientLight(0x404040),
-                    position: new THREE.Vector3(0, 10, 0),
-                }
-            ]
+            instances: []
         }
     }
 }

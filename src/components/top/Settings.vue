@@ -1,6 +1,6 @@
 <template>
   <div>
-    <button class="p-1 rounded text-white shadow-md"
+    <button class="p-1 text-white shadow-md"
       :class="gridVisibility ? 'bg-rose-500 hover:bg-rose-600' : 'bg-gray-800 hover:bg-gray-700'"
       title="Toggle grid visibility" @click="toggleGrid(editor)">
       <GridIcon width="1em" fill="white" />

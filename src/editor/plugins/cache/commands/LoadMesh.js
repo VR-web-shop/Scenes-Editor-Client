@@ -1,5 +1,6 @@
 import { Command } from '../../../editor.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as THREE from 'three'
 
 /**
  * @class
@@ -81,9 +82,15 @@ class LoadMesh extends Command {
         const loaderGLTF = new GLTFLoader()
         const gltf = await loaderGLTF.loadAsync(this.src)
         const mesh = gltf.scene
+
+        const wrapper = new THREE.Object3D()
+        const box3 = new THREE.Box3().setFromObject(mesh)
+        const center = box3.getCenter(new THREE.Vector3())
+        mesh.position.sub(center)
+        wrapper.add(mesh)
         
-        mesh.name = this.name
-        mesh.traverse(child => {
+        wrapper.name = this.name
+        wrapper.traverse(child => {
             const subMeshConfiguration = this.subMeshConfigurations
                 .find(config => config.subMeshName === child.name)
 
@@ -91,7 +98,7 @@ class LoadMesh extends Command {
                 child.material = materialCache.clone(subMeshConfiguration.materialName)
             }
         })
-        const cacheValue = {mesh, 
+        const cacheValue = {mesh: wrapper, 
             src: this.src, subMeshConfigurations: this.subMeshConfigurations}
         
         meshCache.add(cacheKey, cacheValue)

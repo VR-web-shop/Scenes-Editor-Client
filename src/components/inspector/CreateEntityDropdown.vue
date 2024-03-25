@@ -1,8 +1,8 @@
 <template>
-    <Dropdown ref="dropdown" class="shadow-lg absolute top-0 bg-slate-800 overflow-hidden rounded-md w-44 z-60"
+    <Dropdown ref="dropdown" class="text-white shadow-lg absolute top-0 left-10 bg-slate-800 overflow-hidden rounded-md w-44 z-60"
         :otherTargets="otherTargets">
         <div v-for="option in options" :key="option.name">
-            <button @click="openPopup(option.name)"
+            <button @click="openPopup(option.popup)"
                 class="hover:bg-slate-500 w-full flex items-center justify-start gap-3 px-3 py-1 text-sm">
                 <component :is="icons[option.icon]" fill="white" width="0.8em" />
                 <span>{{ option.name }}</span>
@@ -34,14 +34,13 @@ const props = defineProps({
 })
 
 const options = [
-    { name: 'Texture', icon: 'ImageIcon' },
-    { name: 'Material', icon: 'CircleIcon' },
-    { name: 'Mesh', icon: 'CubeIcon' },
-    { name: 'Light', icon: 'LightBulbIcon' },
-    { name: 'Static Object', icon: 'CubesIcon' },
-    { name: 'Floor', icon: 'SquareIcon' },
-    { name: 'Checkout', icon: 'CheckoutIcon' },
-    { name: 'Scene Product', icon: 'TagIcon' }
+    { name: 'Texture', popup: 'textures-create', icon: 'ImageIcon' },
+    { name: 'Material', popup: 'materials-create', icon: 'CircleIcon' },
+    { name: 'Mesh', popup: 'meshes-create', icon: 'CubeIcon' },
+    { name: 'Light', popup: 'objects-create-light', icon: 'LightBulbIcon' },
+    { name: 'Static Object', popup: 'objects-create-static-object', icon: 'CubesIcon' },
+    { name: 'Floor', popup: 'objects-create-floor', icon: 'SquareIcon' },
+    { name: 'Checkout', popup: 'objects-create-checkout', icon: 'CheckoutIcon' },
 ]
 
 const icons = {

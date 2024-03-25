@@ -62,7 +62,9 @@
             </Paginator>
         </div>
 
-        <button type="submit" class="border border-gray-300 px-3 py-1 rounded text-white">Create</button>
+        <button type="submit" class="border border-gray-300 px-3 py-1 rounded text-white">
+            {{ uuid ? 'Update' : 'Create' }}
+        </button>
     </form>
 </template>
 
@@ -74,13 +76,21 @@ import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useToast } from '../../../composables/useToast.js';
 import { ref, onBeforeMount } from 'vue';
 
+const props = defineProps({
+    data: {
+        type: Object,
+        default: null
+    }
+})
+
 const { sdk } = useSceneSDK();
 const editorCtrl = useEditor();
 const toastCtrl = useToast();
 const materialTypes = ref([]);
-const textures = ref([]);
-const name = ref('');
-const type = ref('');
+const textures = ref(props.data ? props.data.Texture : []);
+const name = ref(props.data ? props.data.name : '');
+const type = ref(props.data ? props.data.material_type_name : '');
+const uuid = ref(props.data ? props.data.uuid : '');
 
 const selectTexture = (texture) => {
     textures.value.push(texture);
@@ -109,27 +119,50 @@ const submit = async () => {
         return     
     }
 
-    const material = await sdk.api.MaterialController.create({
-        name: name.value,
-        material_type_name: type.value
-    });
-
-    for (const texture of textures.value) {
-        await sdk.api.MaterialTextureController.create({
-            material_uuid: material.uuid,
-            texture_uuid: texture.uuid
+    if (uuid.value) {
+        const material = await sdk.api.MaterialController.update({
+            uuid: uuid.value,
+            name: name.value,
+            material_type_name: type.value
         });
+
+        const { rows } = await sdk.api.MaterialTextureController.findAll({ limit: 1000, where: { material_uuid: material.uuid } });
+        for (const materialTexture of rows) {
+            await sdk.api.MaterialTextureController.destroy({ uuid: materialTexture.uuid });
+        }
+
+        for (const texture of textures.value) {
+            await sdk.api.MaterialTextureController.create({
+                material_uuid: material.uuid,
+                texture_uuid: texture.uuid
+            });
+        }
+
+        console.log('Todo: update command');
+        toastCtrl.add('Material updated successfully');
+
+    } else {
+        const material = await sdk.api.MaterialController.create({
+            name: name.value,
+            material_type_name: type.value
+        });
+
+        for (const texture of textures.value) {
+            await sdk.api.MaterialTextureController.create({
+                material_uuid: material.uuid,
+                texture_uuid: texture.uuid
+            });
+        }
+        
+        const textureNames = textures.value.map(t => t.name);
+        await editorCtrl.invoke(new LoadMaterial(material.name, material.material_type_name, textureNames));
+
+        name.value = '';
+        type.value = '';
+        textures.value = [];
+
+        toastCtrl.add('Material created successfully');
     }
-
-    
-    const textureNames = textures.value.map(t => t.name);
-    await editorCtrl.invoke(new LoadMaterial(material.name, material.material_type_name, textureNames));
-
-    name.value = '';
-    type.value = '';
-    textures.value = [];
-
-    toastCtrl.add('Material created successfully');
 }
 
 onBeforeMount(async () => {

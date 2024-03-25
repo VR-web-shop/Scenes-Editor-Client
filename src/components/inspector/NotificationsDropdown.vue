@@ -1,18 +1,32 @@
 <template>
-    <Dropdown ref="dropdown" class="shadow-lg absolute top-0 bg-slate-800 overflow-hidden rounded-md w-32 z-60"
+    <Dropdown ref="dropdown" class="p-3 text-white shadow-lg absolute top-0 left-10 bg-slate-800 overflow-hidden rounded-md w-32"
+        style="z-index:1000;"
         :otherTargets="otherTargets">
 
-        <div class="p-3">
-            <p class="text-sm mb-3">You got <span class="underline">2</span> products without mesh</p>
-            <button class="border border-slate-500 rounded-md text-sm uppercase px-3 py-2 bg-gray-800/50 text-white hover:bg-gray-800">Solve</button>
+        <div v-if="notifications.length > 0" class="mb-1">
+            <div v-for="notification in notifications" :key="notification.id">
+                <p class="text-sm mb-3">
+                    {{ notification.msg }}
+                </p>
+
+                <button @click="solve(notification)" 
+                    class="text-xs border border-slate-500 rounded-md text-xs uppercase p-2 bg-gray-800/50 text-white hover:bg-slate-500">
+                    Solve
+                </button>
+            </div>
+        </div>
+        <div v-else>
+            <p class="text-sm text-center">
+                You are all set!
+            </p>
         </div>
     </Dropdown>
 </template>
 
 <script setup>
-import PlusIcon from '../Icons/PlusIcon.vue';
 import Dropdown from '../UI/Dropdown.vue';
-import { ref, defineExpose } from 'vue';
+import { useNotifications } from '../../composables/useNotifications.js';
+import { ref, defineExpose, onMounted } from 'vue';
 
 const props = defineProps({
     otherTargets: {
@@ -22,12 +36,15 @@ const props = defineProps({
     }
 })
 
-const dropdown = ref()
-const toggle = () => {
-    dropdown.value.toggle()
+const dropdown = ref();
+const notificationCtrl = useNotifications();
+const notifications = notificationCtrl.notifications;
+
+const solve = async (notification) => {
+    await notification.solve();
+    dropdown.value.toggle();
 }
 
-defineExpose({
-    toggle
-})
+onMounted(async () => await notificationCtrl.sync())
+defineExpose({ dropdown })
 </script>

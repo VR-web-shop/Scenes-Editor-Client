@@ -1,5 +1,5 @@
 <script setup>
-import Toast from '../components/top/Toast.vue';
+import Toast from '../components/UI/Toast.vue';
 import { useToast } from '../composables/useToast.js';
 import { useAuthSDK } from '../composables/useAuthSDK.js';
 import { usePermission } from '../composables/usePermission.js';

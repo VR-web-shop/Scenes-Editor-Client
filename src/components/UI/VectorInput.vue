@@ -41,5 +41,11 @@ const getVector = () => {
     }
 }
 
-defineExpose({ x, y, z, getVector });
+const setVector = (vector) => {
+    x.value = vector.x;
+    y.value = vector.y;
+    z.value = vector.z;
+}
+
+defineExpose({ x, y, z, getVector, setVector });
 </script>

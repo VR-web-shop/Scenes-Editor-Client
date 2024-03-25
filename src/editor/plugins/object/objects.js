@@ -83,23 +83,32 @@ export default class Objects extends BasePlugin {
     /**
      * Remove an object from the scene and objects list
      * 
-     * @param {THREE.Object3D} object
+     * @param {number} id
      * @returns {void}
-     * @throws {Error} if object is not a THREE.Object3D
      * @throws {Error} if unable to find object
      */
-    remove(object) {
-        if (!(object instanceof THREE.Object3D)) {
-            throw new Error('Must be a THREE.Object3D')
-        }
-
-        const index = this.objects.findIndex(obj => obj.object === object)
+    remove(id) {
+        const index = this.objects.findIndex(({ options }) => options.id === id)
         if (index === -1) {
             throw new Error('Unable to find object')
         }
 
-        this.objects.splice(index, 1)
+        const { object } = this.objects[index]
         this.scene.remove(object)
+        this.objects.splice(index, 1)
+    }
+
+    getLightHelper(light) {
+        return Util.getLightHelper(light)
+    }
+
+    update(id, object) {
+        const index = this.objects.findIndex(({ options }) => options.id === id)
+        this.objects[index] = object
+    }
+
+    find(id) {
+        return this.objects.find(({ options }) => options.id === id)
     }
 
     getObject3Ds() {

@@ -1,85 +1,60 @@
 <template>
-  <div class="w-52 h-full">
-    <div>
-      <div class="text-xs text-white p-2">
-        <button @click="logout" class="flex items-center justify-between gap-3 w-full bg-slate-600 px-2 py-1 rounded-md hover:bg-slate-700">
-          <span>Logout</span>
-          <LogoutIcon fill="white" width="0.8em" />
-        </button>
-      </div>
+  <div class="relative">
+    <NotificationsDropdown ref="dropdownBell" :otherTargets="[bellBtn]" />
+    <CreateEntityDropdown ref="dropdownAdd" :otherTargets="[addBtn]" />
 
-      <div class="flex items-center justify-between p-2">
-        <h2 class="text-sm uppercase font-bold text-white">
-          Inspector
-        </h2>
+    <div class="rounded-md">
 
-        <div class="relative flex items-center justify-between gap-1">
-          <button class="bg-green-500 p-1 rounded-md hover:bg-green-800" title="Save">
-            <CheckmarkIcon fill="white" width="0.8em" />
-          </button>
+      <button @click="saveScene" title="Save" 
+        class="bg-green-500 p-1 hover:bg-green-800 flex items-center justify-center w-8 h-8">
+        <CheckmarkIcon fill="white" width="0.8em" />
+      </button>
 
-          <button @click="dropdownBell.toggle" ref="bellBtn" title="Notifications" class="bg-red-500 hover:bg-red-800 p-1 rounded-md">
-            <BellIcon fill="white" width="0.8em" class="animate-shake" />
-          </button>
+      <button @click="dropdownBell.dropdown.toggle" ref="bellBtn" title="Notifications"
+        class="relative bg-red-500 hover:bg-red-800 p-1 flex items-center justify-center w-8 h-8">
+        <BellIcon fill="white" width="0.8em" class="z-1" :class="notificationsCount > 0 ? 'animate-shake' : ''" />
+        <span v-if="notificationsCount > 0" class="absolute top-0 right-0 -mt-1 -mr-1 bg-red-800 text-xs text-white rounded-full px-1">{{ notificationsCount }}</span>
+      </button>
 
-          <button @click="dropdownAdd.toggle" ref="addBtn" title="Add" class="bg-blue-500 hover:bg-blue-800 p-1 rounded-md">
-            <PlusIcon fill="white" width="0.8em" />
-          </button>
+      <button @click="dropdownAdd.toggle" ref="addBtn" title="Add" 
+        class="bg-blue-500 hover:bg-blue-800 p-1 flex items-center justify-center w-8 h-8">
+        <PlusIcon fill="white" width="0.8em" />
+      </button>
 
-          <NotificationsDropdown ref="dropdownBell" :otherTargets="[bellBtn]" />
-          <PopupDropdown ref="dropdownAdd" :otherTargets="[addBtn]" />
-        </div>
+      <button v-for="popup in popups" :key="popup.id" @click="popupCtrl.open(popup.id)" :title="popup.title"
+        class="bg-slate-800 hover:bg-slate-500 p-1 flex items-center justify-center w-8 h-8">
+        <component :is="popup.icon" fill="white" width="0.8em" />
+      </button>
 
-
-      </div>
-
-      <Tab title="Objects">
-        <Objects :editor="editor" />
-      </Tab>
-
-      <Tab title="Meshes">
-        <Meshes :editor="editor" />
-      </Tab>
-
-      <Tab title="Materials">
-        <Materials :editor="editor" />
-      </Tab>
-
-      <Tab title="Textures">
-        <Textures :editor="editor" />
-      </Tab>
-
-      <Tab title="Scene">
-        <Scene :editor="editor" />
-      </Tab>
-
-      
+      <button @click="logout"
+        class="bg-slate-600 p-1 hover:bg-slate-700 flex items-center justify-center w-8 h-8">
+        <LogoutIcon fill="white" width="0.8em" />
+      </button>
 
     </div>
   </div>
 </template>
 
 <script setup>
-import Textures from './Textures.vue';
-import Materials from './Materials.vue';
-import Meshes from './Meshes.vue';
-import Objects from './Objects.vue';
-import Scene from './Scene.vue';
-import Tab from './Tab.vue';
 import NotificationsDropdown from './NotificationsDropdown.vue';
-import PopupDropdown from './PopupDropdown.vue';
+import CreateEntityDropdown from './CreateEntityDropdown.vue';
+
 import PlusIcon from '../Icons/PlusIcon.vue';
 import BellIcon from '../Icons/BellIcon.vue';
 import LogoutIcon from '../Icons/LogoutIcon.vue';
 import CheckmarkIcon from '../Icons/CheckmarkIcon.vue';
+import ImageIcon from '../Icons/ImageIcon.vue';
+import CircleIcon from '../Icons/CircleIcon.vue';
+import CubeIcon from '../Icons/CubeIcon.vue';
+import LayerGroupIcon from '../Icons/LayerGroupIcon.vue';
+import SceneIcon from '../Icons/SceneIcon.vue';
+
+import { router } from '../../router.js';
+import { usePopups } from '../../composables/usePopups.js';
+import { useScene } from '../../composables/useScene.js';
 import { useAuthSDK } from '../../composables/useAuthSDK.js';
-import { ref } from 'vue';
-
-
-const dropdownAdd = ref()
-const dropdownBell = ref()
-const addBtn = ref()
-const bellBtn = ref()
+import { useNotifications } from '../../composables/useNotifications.js';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
   editor: {
@@ -87,6 +62,27 @@ const props = defineProps({
     required: true
   }
 });
+
+const popupCtrl = usePopups()
+const popups = [
+  {id: 'objects-index', title: 'Objects', icon: LayerGroupIcon},
+  {id: 'meshes-index', title: 'Meshes', icon: CubeIcon},
+  {id: 'materials-index', title: 'Materials', icon: CircleIcon},
+  {id: 'textures-index', title: 'Textures', icon: ImageIcon},
+  {id: 'scene-edit', title: 'Scene', icon: SceneIcon}
+]
+
+const dropdownAdd = ref()
+const dropdownBell = ref()
+const addBtn = ref()
+
+const bellBtn = ref()
+const notificationsCtrl = useNotifications()
+const notificationsCount = computed(() => notificationsCtrl.notifications.value.length)
+
+const sceneUUID = router.currentRoute.value.params.sceneUUID
+const sceneCtrl = useScene().setEditor(props.editor)
+const saveScene = async () => await sceneCtrl.saveScene(sceneUUID)
 
 const logout = async () => {
   const { sdk, authenticated } = useAuthSDK()
