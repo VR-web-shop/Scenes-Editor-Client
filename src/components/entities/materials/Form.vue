@@ -1,10 +1,12 @@
 <template>
     <form @submit.prevent="submit" class="p-3 text-white">
-        <input type="text" placeholder="Name" v-model="name" class="w-full text-sm p-2 mb-1 rounded-md bg-white/[.10]" />
+        <input type="text" placeholder="Name" v-model="name"
+            class="w-full text-sm p-2 mb-1 rounded-md bg-white/[.10]" />
 
         <select v-model="type" class="w-full p-2 text-sm mb-1 bg-white/[.10] rounded-md mb-3">
             <option value="" class="text-black">Select Type</option>
-            <option v-for="materialType in materialTypes" :key="materialType.name" :value="materialType.name" class="text-black">
+            <option v-for="materialType in materialTypes" :key="materialType.name" :value="materialType.name"
+                class="text-black">
                 {{ materialType.name }}
             </option>
         </select>
@@ -25,7 +27,8 @@
                                 </span>
                             </div>
 
-                            <button type="button" @click="deselectTexture(texture)" class="bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
+                            <button type="button" @click="deselectTexture(texture)"
+                                class="bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
                         </div>
                     </div>
                 </div>
@@ -46,15 +49,17 @@
                                 </span>
                             </div>
 
-                            <div v-if="!isSelected(texture) && isTextureTypeSelected(texture.texture_type_name)" class="text-gray-500">
+                            <div v-if="!isSelected(texture) && isTextureTypeSelected(texture.texture_type_name)"
+                                class="text-gray-500">
                                 Only one of each type allowed
                             </div>
-                            
+
                             <div v-else-if="isSelected(texture)" class="text-gray-500">
                                 Selected
                             </div>
-                            
-                            <button v-else type="button" @click="selectTexture(texture)" class="bg-emerald-500 text-white px-1 py-1 rounded-md">Select</button>
+
+                            <button v-else type="button" @click="selectTexture(texture)"
+                                class="bg-emerald-500 text-white px-1 py-1 rounded-md">Select</button>
                         </div>
                     </div>
                 </template>
@@ -116,27 +121,33 @@ const submit = async () => {
 
     if (!type.value) {
         toastCtrl.add('Type is required', 5000, 'error');
-        return     
+        return
     }
 
     if (uuid.value) {
-        const material = await sdk.api.MaterialController.update({
-            uuid: uuid.value,
-            name: name.value,
-            material_type_name: type.value
-        });
-
-        const { rows } = await sdk.api.MaterialTextureController.findAll({ limit: 1000, where: { material_uuid: material.uuid } });
+        // Delete all material textures
+        const { rows } = await sdk.api.MaterialTextureController.findAll({ limit: 1000, where: { material_uuid: uuid.value } });
         for (const materialTexture of rows) {
             await sdk.api.MaterialTextureController.destroy({ uuid: materialTexture.uuid });
         }
 
+        // Create new material textures
         for (const texture of textures.value) {
             await sdk.api.MaterialTextureController.create({
-                material_uuid: material.uuid,
+                material_uuid: uuid.value,
                 texture_uuid: texture.uuid
             });
         }
+
+        // Update material
+        const material = await sdk.api.MaterialController.update({
+            uuid: uuid.value,
+            name: name.value,
+            material_type_name: type.value,
+            responseInclude: [
+                { model: 'Texture' }
+            ]
+        });
 
         console.log('Todo: update command');
         toastCtrl.add('Material updated successfully');
@@ -153,9 +164,9 @@ const submit = async () => {
                 texture_uuid: texture.uuid
             });
         }
-        
+
         const textureNames = textures.value.map(t => t.name);
-        await editorCtrl.invoke(new LoadMaterial(material.name, material.material_type_name, textureNames));
+        await editorCtrl.invoke(new LoadMaterial(material.uuid, material.material_type_name, textureNames));
 
         name.value = '';
         type.value = '';

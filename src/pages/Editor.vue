@@ -20,18 +20,15 @@ import { useScene } from '../composables/useScene.js';
 
 import { router } from '../router.js';
 import { useSceneSDK } from '../composables/useScenesSDK.js';
-import { ViewConfiguration } from '../editor/editor.js';
 import { ref, onMounted } from 'vue';
 
 const editorRef = ref();
 const frameRate = 15;
-const viewConfiguration = new ViewConfiguration();
 const sceneUUID = router.currentRoute.value.params.sceneUUID;
 
 const sceneCtrl = useScene()
 
 onMounted(async () => {
-  viewConfiguration.sceneConfig.instance.background = new THREE.Color(0xCCCDDD);
     const editor = editorRef.value.editor;
     editor.pause()
     sceneCtrl.setEditor(editor)
@@ -46,7 +43,7 @@ onMounted(async () => {
 <template>
     <Restricted :permissions="['scenes-editor:client:access']">
         <div>
-            <Editor ref="editorRef" :viewConfiguration="viewConfiguration" :frameRate="frameRate">
+            <Editor ref="editorRef" :frameRate="frameRate">
                 <template v-slot:executing="{ editor }">
                     <div class="fixed top-3 bottom-3 left-3 rounded">
                         <Inspector :editor="editor" />

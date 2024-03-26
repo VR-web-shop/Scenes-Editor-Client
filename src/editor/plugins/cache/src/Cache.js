@@ -1,6 +1,6 @@
 import CloningStrategy from './CloningStrategy.js';
 import DisposeStrategy from './DisposeStrategy.js';
-
+import { toRaw } from 'vue';
 /**
  * @class
  * @classdesc A cache for objects
@@ -61,7 +61,7 @@ export default class Cache {
    * @returns {object}
    */
   find(id) {
-    return this.cache[id];
+    return toRaw(this.cache)[id];
   }
 
   /**
@@ -89,7 +89,7 @@ export default class Cache {
   dispose(id) {
     const cached = this.find(id);
     this.disposeStrategy.dispose(cached);
-    delete this.cache[id];
+    delete toRaw(this.cache)[id];
   }
 
   /**
@@ -98,7 +98,7 @@ export default class Cache {
    * @returns {void}
    */
   disposeAll() {
-    for (const key of Object.keys(this.cache)) {
+    for (const key of Object.keys(toRaw(this.cache))) {
       this.dispose(key);
     }
 

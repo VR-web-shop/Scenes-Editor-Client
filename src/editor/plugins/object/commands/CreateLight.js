@@ -18,11 +18,10 @@ export default class CreateLight extends Command {
      * @param {string} color the color of the light (optional)
      * @param {object} position the position of the light (optional)
      * @param {object} rotation the rotation of the object (optional)
-     * @param {object} scale the scale of the object (optional)
      * @param {object} recordData the record data of the object (optional)
      * @throws {Error} if meshName is not a string
      */
-    constructor(labelName, id, type, intensity, color, position, rotation, scale, recordData) {
+    constructor(labelName, id, type, intensity, color, position, rotation, recordData) {
         super()
 
         if (typeof labelName !== 'string') {
@@ -42,7 +41,6 @@ export default class CreateLight extends Command {
         this.color = color
         this.position = position
         this.rotation = rotation
-        this.scale = scale
         this.labelName = labelName
         this.id = id
         this.recordData = recordData
@@ -72,10 +70,6 @@ export default class CreateLight extends Command {
 
         if (this.rotation) {
             light.rotation.set(this.rotation.x, this.rotation.y, this.rotation.z)
-        }
-
-        if (this.scale) {
-            light.scale.set(this.scale.x, this.scale.y, this.scale.z)
         }
 
         // Add the object to the scene and objects list

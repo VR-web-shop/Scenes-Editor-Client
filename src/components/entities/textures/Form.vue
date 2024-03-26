@@ -88,7 +88,7 @@ const submit = async () => {
             source: source.value,
             texture_type_name: type.value
         });
-        await editorCtrl.invoke(new LoadTexture(newTexture.name, newTexture.source, newTexture.texture_type_name));
+        await editorCtrl.invoke(new LoadTexture(newTexture.uuid, newTexture.source, newTexture.texture_type_name));
         toastCtrl.add('Texture created', 5000, 'success');
 
         name.value = '';

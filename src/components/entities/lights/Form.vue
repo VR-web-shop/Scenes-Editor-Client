@@ -74,22 +74,17 @@ const submit = async () => {
     }
 
     if (uuid.value) {
-        await sdk.api.SceneLightController.update({
+        const light = await sdk.api.SceneLightController.update({
             uuid: uuid.value,
             name: name.value,
             scene_light_type_name: type.value,
             intensity: intensity.value,
-            hexColor: color.value
-        });UpdateLight
-
-        const { rows } = await sdk.api.SceneLightController.findAll({
-            limit: 1,
-            where: { uuid: uuid.value },
-            include: [
+            hexColor: color.value,
+            responseInclude: [
                 { model: 'Position' },
-                { model: 'Rotation' },
-            ]     
-        })
+                { model: 'Rotation' }
+            ]
+        });
 
         await editorCtrl.invoke(new UpdateLight(
             uuid.value,
@@ -97,7 +92,7 @@ const submit = async () => {
             type.value,
             intensity.value,
             color.value,
-            rows[0]
+            light
         ));
         
         toastCtrl.add('Light updated', 5000, 'success');
@@ -107,7 +102,11 @@ const submit = async () => {
             scene_light_type_name: type.value,
             intensity: intensity.value,
             hexColor: color.value,
-            scene_uuid: sceneUUID
+            scene_uuid: sceneUUID,
+            responseInclude: [
+                { model: 'Position' },
+                { model: 'Rotation' }
+            ]
         });
 
         await editorCtrl.invoke(new CreateLight(
@@ -115,7 +114,10 @@ const submit = async () => {
             light.uuid,
             type.value,
             intensity.value,
-            color.value
+            color.value,
+            light.Position,
+            light.Rotation,
+            light
         ));
         
         name.value = '';

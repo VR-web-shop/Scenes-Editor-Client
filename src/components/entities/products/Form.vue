@@ -87,47 +87,42 @@ const submit = async () => {
     }
 
     if (uuid.value) {
-        await sdk.api.SceneProductController.update({
+        const sceneProduct = await sdk.api.SceneProductController.update({
             uuid: uuid.value,
-            product_uuid: product.value,
-            mesh_uuid: mesh.value.uuid
-        });
-
-        const { rows } = await sdk.api.SceneProductController.findAll({
-            limit: 1,
-            where: { uuid: uuid.value },
-            include: [
+            mesh_uuid: mesh.value.uuid,
+            responseInclude: [
                 { model: 'Position' },
                 { model: 'Rotation' },
                 { model: 'Scale' },
                 { model: 'Mesh' },
                 { model: 'Product' }
-            ]     
-        })
+            ]
+        });
 
-        await editorCtrl.invoke(new UpdateObject(
-            uuid.value,
-            rows[0].Product.name,
-            mesh.value.uuid,
-            rows[0]
-        ));
+        if (props.data.recordData.mesh_uuid === null) {
+            await editorCtrl.invoke(new CreateObject(
+                'Product',
+                sceneProduct.Product.name,
+                uuid.value,
+                mesh.value.uuid,
+                sceneProduct.Position,
+                sceneProduct.Rotation,
+                sceneProduct.Scale,
+                sceneProduct
+            ));
+            props.data.recordData.mesh_uuid = mesh.value.uuid;
+        } else {
+            await editorCtrl.invoke(new UpdateObject(
+                uuid.value,
+                sceneProduct.Product.name,
+                mesh.value.uuid,
+                sceneProduct
+            ));
+        }
 
         toastCtrl.add('Product updated', 5000, 'success');
         await notificationCtrl.sync();
-        return
+
     }
-    
-    await sdk.api.SceneProductController.create({
-        product_uuid: product.value,
-        mesh_uuid: mesh.value.uuid,
-        scene_uuid: sceneUUID
-    });
-
-    product.value = '';
-    mesh.value = '';
-
-    toastCtrl.add('Product created', 5000, 'success');
-
-    
 }
 </script>

@@ -3,9 +3,9 @@
         style="z-index:1000;"
         :otherTargets="otherTargets">
 
-        <div v-if="notifications.length > 0" class="mb-1">
+        <div v-if="notifications.length > 0" class="mb-1 grid grid-cols-1 gap-3">
             <div v-for="notification in notifications" :key="notification.id">
-                <p class="text-sm mb-3">
+                <p class="text-sm mb-1">
                     {{ notification.msg }}
                 </p>
 

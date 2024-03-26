@@ -36,14 +36,17 @@
 import PenIcon from '../../Icons/PenIcon.vue';
 import TimesIcon from '../../Icons/TimesIcon.vue';
 import Paginator from '../../UI/Paginator.vue';
+import RemoveTexture from '../../../editor/plugins/cache/commands/RemoveTexture.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { usePopups } from '../../../composables/usePopups.js';
 import { useToast } from '../../../composables/useToast.js';
+import { useEditor } from '../../../composables/useEditor.js';
 import { ref } from 'vue';
 
 const { sdk } = useSceneSDK();
 const toastCtrl = useToast();
 const popups = usePopups();
+const editorCtrl = useEditor();
 const paginatorRef = ref();
 
 const destroy = async (material) => {
@@ -51,9 +54,9 @@ const destroy = async (material) => {
     if (!confirm) return;
     try {
         await sdk.api.MaterialController.destroy({uuid: material.uuid});
+        await editorCtrl.invoke(new RemoveTexture(material.uuid))
         paginatorRef.value.paginator.page=1;
         paginatorRef.value.paginator.refresh();
-        console.log('todo: remove material from cache');
         toastCtrl.add('Material deleted', 5000, 'success');
     } catch (error) {
         console.error(error);

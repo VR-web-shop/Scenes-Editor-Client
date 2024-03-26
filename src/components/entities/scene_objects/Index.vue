@@ -92,6 +92,8 @@ const readObjects = editorCtrl.newReader(ReadObjects);
 async function findAll(params) {
     const { limit, page } = params;
     const objects = readObjects.read();
+    if (objects.length == 0) return { rows: [], count: 0, pages: 0 };
+    
     const offset = (page - 1) * limit;
     const pages = Math.ceil(objects.length / limit);
     return {

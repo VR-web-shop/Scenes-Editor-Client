@@ -25,8 +25,13 @@
         class="bg-slate-800 hover:bg-slate-500 p-1 flex items-center justify-center w-8 h-8">
         <component :is="popup.icon" fill="white" width="0.8em" />
       </button>
+      
+      <button @click="changeScene" title="Change Scene"
+        class="bg-slate-400 p-1 hover:bg-slate-700 flex items-center justify-center w-8 h-8">
+        <ArrowLeftIcon fill="white" width="0.8em" />
+      </button>
 
-      <button @click="logout"
+      <button @click="logout" title="Logout"
         class="bg-slate-600 p-1 hover:bg-slate-700 flex items-center justify-center w-8 h-8">
         <LogoutIcon fill="white" width="0.8em" />
       </button>
@@ -46,6 +51,7 @@ import CheckmarkIcon from '../Icons/CheckmarkIcon.vue';
 import ImageIcon from '../Icons/ImageIcon.vue';
 import CircleIcon from '../Icons/CircleIcon.vue';
 import CubeIcon from '../Icons/CubeIcon.vue';
+import ArrowLeftIcon from '../Icons/ArrowLeftIcon.vue';
 import LayerGroupIcon from '../Icons/LayerGroupIcon.vue';
 import SceneIcon from '../Icons/SceneIcon.vue';
 
@@ -83,6 +89,10 @@ const notificationsCount = computed(() => notificationsCtrl.notifications.value.
 const sceneUUID = router.currentRoute.value.params.sceneUUID
 const sceneCtrl = useScene().setEditor(props.editor)
 const saveScene = async () => await sceneCtrl.saveScene(sceneUUID)
+
+const changeScene = () => {
+  router.push('/')
+}
 
 const logout = async () => {
   const { sdk, authenticated } = useAuthSDK()

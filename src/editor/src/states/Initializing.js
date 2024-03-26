@@ -21,11 +21,6 @@ export default class Initializing extends State {
         }
 
         /**
-         * Add the initial lights
-         */
-        this.context.options.view.addLights(this.context.options.plugins.objects)
-
-        /**
          * Move to the executing state
          */
         this.context.changeState(new Executing()) 

@@ -52,6 +52,7 @@ import Paginator from '../../UI/Paginator.vue';
 import VectorInput from '../../UI/VectorInput.vue';
 import CreateObject from '../../../editor/plugins/object/commands/CreateObject.js';
 import UpdateObject from '../../../editor/plugins/object/commands/UpdateObject.js';
+import { useNotifications } from '../../../composables/useNotifications';
 import { useEditor } from '../../../composables/useEditor.js';
 import { router } from '../../../router.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
@@ -68,12 +69,13 @@ const props = defineProps({
 const { sdk } = useSceneSDK();
 const editorCtrl = useEditor();
 const toastCtrl = useToast();
+const notificationCtrl = useNotifications();
 const uuid = ref(props.data ? props.data.recordData.uuid : '');
-const objectMesh = ref(props.data ? {
+const objectMesh = ref(props.data && props.data.recordData.Object ? {
     uuid: props.data.recordData.Object.uuid,
     name: props.data.recordData.Object.name
 } : '');
-const placeholderMesh = ref(props.data ? {
+const placeholderMesh = ref(props.data && props.data.recordData.Placeholder ? {
     uuid: props.data.recordData.Placeholder.uuid,
     name: props.data.recordData.Placeholder.name
 } : '');
@@ -103,12 +105,6 @@ const submit = async () => {
     if (placeholderOffsetValues.z === 0) placeholderOffsetValues.z = 0.0001;
     
     if (uuid.value) {
-        await sdk.api.SceneBasketController.update({
-            uuid: uuid.value,
-            object_uuid: objectMesh.value.uuid,
-            placeholder_uuid: placeholderMesh.value.uuid
-        });
-
         await sdk.api.Vector3DController.update({
             uuid: props.data.recordData.ObjectOffset.uuid,
             x: objectOffsetValues.x,
@@ -122,11 +118,12 @@ const submit = async () => {
             y: placeholderOffsetValues.y,
             z: placeholderOffsetValues.z
         });
-        
-        const { rows } = await sdk.api.SceneBasketController.findAll({
-            limit: 1,
-            where: { uuid: uuid.value },
-            include: [
+
+        const sceneBasket = await sdk.api.SceneBasketController.update({
+            uuid: uuid.value,
+            object_uuid: objectMesh.value.uuid,
+            placeholder_uuid: placeholderMesh.value.uuid,
+            responseInclude: [
                 { model: 'Position' },
                 { model: 'Rotation' },
                 { model: 'Scale' },
@@ -134,23 +131,52 @@ const submit = async () => {
                 { model: 'Placeholder' },
                 { model: 'ObjectOffset' },
                 { model: 'PlaceholderOffset' }
-            ]     
-        })
-        await editorCtrl.invoke(new UpdateObject(
-            uuid.value,
-            'Scene Basket',
-            objectMesh.value.uuid,
-            rows[0]
-        ));
+            ]    
+        });
 
-        await editorCtrl.invoke(new UpdateObject(
-            uuid.value+'-basket-placeholder',
-            'Scene Basket Placeholder',
-            placeholderMesh.value.uuid,
-            rows[0]
-        ));
+        if (props.data && props.data.recordData.object_uuid === null) {
+            await editorCtrl.invoke(new CreateObject(
+                'Basket',
+                'Scene Basket',
+                uuid.value,
+                objectMesh.value.uuid,
+                sceneBasket.Position,
+                sceneBasket.Rotation,
+                sceneBasket.Scale,
+                sceneBasket
+            ));
+        } else {
+            await editorCtrl.invoke(new UpdateObject(
+                uuid.value,
+                'Scene Basket',
+                objectMesh.value.uuid,
+                sceneBasket
+            ));
+        }
 
-        toastCtrl.add('Checkout updated', 5000, 'success');
+        if (props.data && props.data.recordData.placeholder_uuid === null) {
+            await editorCtrl.invoke(new CreateObject(
+                'BasketPlaceholder',
+                'Scene Basket Placeholder',
+                uuid.value + '-basket-placeholder',
+                objectMesh.value.uuid,
+                sceneBasket.Position,
+                sceneBasket.Rotation,
+                sceneBasket.Scale,
+                sceneBasket
+            ));
+        } else {
+            await editorCtrl.invoke(new UpdateObject(
+                uuid.value,
+                'Scene Basket',
+                placeholderMesh.value.uuid,
+                sceneBasket
+            ));
+        }
+
+        await notificationCtrl.sync();
+
+        toastCtrl.add('Basket updated', 5000, 'success');
     }
 }
 

@@ -1,7 +1,9 @@
 <template>
     <form @submit.prevent="submit" class="p-3 text-white">
-        <input type="text" placeholder="Name" v-model="name" class="w-full text-sm p-2 mb-1 rounded-md bg-white/[.10]" />
-        <input type="text" placeholder="Source" v-model="source" class="w-full text-sm p-2 mb-3 rounded-md bg-white/[.10]" />
+        <input type="text" placeholder="Name" v-model="name"
+            class="w-full text-sm p-2 mb-1 rounded-md bg-white/[.10]" />
+        <input type="text" placeholder="Source" v-model="source"
+            class="w-full text-sm p-2 mb-3 rounded-md bg-white/[.10]" />
 
         <div class="mb-3 text-sm">
             <p class="mb-3 text-white">
@@ -10,17 +12,21 @@
             <div class="mb-3 pb-3 border-b border-gray-500 max-h-[200px] overflow-y-auto">
                 <p v-if="submeshConfigurations.length === 0" class="text-gray-500">None</p>
                 <div v-else>
-                    <div v-for="submeshConfiguration in submeshConfigurations" :key="submeshConfiguration.material.uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
+                    <div v-for="submeshConfiguration in submeshConfigurations" :key="submeshConfiguration.material.uuid"
+                        class="p-2 bg-white/[.10] rounded-md mb-1">
                         <div class="flex justify-between gap-3">
                             <div class="w-full">
-                                <input type="text" placeholder="Submesh Name" v-model="submeshConfiguration.submesh_name" class="w-full text-white p-2 mb-1 rounded-md bg-white/[.10]" />
+                                <input type="text" placeholder="Submesh Name"
+                                    v-model="submeshConfiguration.submesh_name"
+                                    class="w-full text-white p-2 mb-1 rounded-md bg-white/[.10]" />
                                 <div class="flex gap-1 text-white text-sm">
                                     <span class="font-bold">Material:</span>
                                     <span>{{ submeshConfiguration.material.name }}</span>
                                 </div>
                             </div>
-                            
-                            <button type="button" @click="removeConfig(submeshConfiguration)" class="bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
+
+                            <button type="button" @click="removeConfig(submeshConfiguration)"
+                                class="bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
                         </div>
                     </div>
                 </div>
@@ -41,7 +47,8 @@
                                     {{ material.material_type_name }}
                                 </span>
 
-                                <button type="button" @click="addMaterial(material)" class="bg-emerald-500 text-white px-1 py-1 rounded-md">Add</button>
+                                <button type="button" @click="addMaterial(material)"
+                                    class="bg-emerald-500 text-white px-1 py-1 rounded-md">Add</button>
                             </div>
                         </div>
                     </div>
@@ -79,9 +86,9 @@ const source = ref(props.data ? props.data.source : '');
 const uuid = ref(props.data ? props.data.uuid : '');
 const submeshConfigurations = ref([]);
 
-const addMaterial = (material, submesh_name='') => {
+const addMaterial = (material, submesh_name = '') => {
     const id = submeshConfigurations.value.length + 1;
-    submeshConfigurations.value.push({id, submesh_name, material});
+    submeshConfigurations.value.push({ id, submesh_name, material });
 }
 
 const removeConfig = (config) => {
@@ -91,12 +98,12 @@ const removeConfig = (config) => {
 const submit = async () => {
     if (!name.value) {
         toastCtrl.add('Name is required', 5000, 'error');
-        return   
+        return
     }
 
     if (!source.value) {
         toastCtrl.add('Source is required', 5000, 'error');
-        return        
+        return
     }
 
     for (const submesh of submeshConfigurations.value) {
@@ -107,25 +114,30 @@ const submit = async () => {
     }
 
     if (uuid.value) {
-
-        const mesh = await sdk.api.MeshController.update({
-            uuid: uuid.value,
-            name: name.value,
-            source: source.value
-        });
-
-        const existingSubmeshes = await sdk.api.MeshMaterialController.findAll({ limit: 1000, where: { mesh_uuid: mesh.uuid } });
+        // Delete existing submeshes
+        const existingSubmeshes = await sdk.api.MeshMaterialController.findAll({ limit: 1000, where: { mesh_uuid: uuid.value } });
         for (const submesh of existingSubmeshes.rows) {
             await sdk.api.MeshMaterialController.destroy({ uuid: submesh.uuid });
         }
 
+        // Create new submeshes
         for (const submesh of submeshConfigurations.value) {
             await sdk.api.MeshMaterialController.create({
-                mesh_uuid: mesh.uuid,
+                mesh_uuid: uuid.value,
                 material_uuid: submesh.material.uuid,
                 submesh_name: submesh.submesh_name
             });
         }
+
+        // Update mesh
+        const mesh = await sdk.api.MeshController.update({
+            uuid: uuid.value,
+            name: name.value,
+            source: source.value,
+            responseInclude: [
+                { model: 'Material' }
+            ]
+        });
 
         console.log('Todo: update command')
 
@@ -159,9 +171,11 @@ const submit = async () => {
 
 onBeforeMount(async () => {
     if (uuid.value) {
-        const { rows } = await sdk.api.MeshMaterialController.findAll({ limit: 1000, where: { mesh_uuid: uuid.value }, include: [
-            { model: 'Material' }
-        ]});
+        const { rows } = await sdk.api.MeshMaterialController.findAll({
+            limit: 1000, where: { mesh_uuid: uuid.value }, include: [
+                { model: 'Material' }
+            ]
+        });
         for (const meshMaterial of rows) {
             addMaterial(meshMaterial.Material, meshMaterial.submesh_name);
         }

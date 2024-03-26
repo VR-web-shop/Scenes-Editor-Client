@@ -65,28 +65,23 @@ const submit = async () => {
     }
 
     if (uuid.value) {
-        await sdk.api.SceneFloorController.update({
+        const sceneFloor = await sdk.api.SceneFloorController.update({
             uuid: uuid.value,
             name: name.value,
-            mesh_uuid: mesh.value.uuid
-        });
-        
-        const { rows } = await sdk.api.SceneFloorController.findAll({
-            limit: 1,
-            where: { uuid: uuid.value },
-            include: [
+            mesh_uuid: mesh.value.uuid,
+            responseInclude: [
                 { model: 'Position' },
                 { model: 'Rotation' },
                 { model: 'Scale' },
                 { model: 'Mesh' },
-            ]     
-        })
+            ]
+        });
 
         await editorCtrl.invoke(new UpdateObject(
             uuid.value,
             name.value,
             mesh.value.uuid,
-            rows[0]
+            sceneFloor
         ));
 
         toastCtrl.add('Floor updated', 5000, 'success');
@@ -94,14 +89,24 @@ const submit = async () => {
         const floor = await sdk.api.SceneFloorController.create({
             name: name.value,
             mesh_uuid: mesh.value.uuid,
-            scene_uuid: sceneUUID
+            scene_uuid: sceneUUID,
+            responseInclude: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'Mesh' },
+            ]
         });
 
         await editorCtrl.invoke(new CreateObject(
             'Floor',
             name.value,
             floor.uuid,
-            mesh.value.uuid
+            mesh.value.uuid,
+            floor.Position,
+            floor.Rotation,
+            floor.Scale,
+            floor
         ));
 
         name.value = '';

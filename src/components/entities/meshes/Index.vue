@@ -32,14 +32,16 @@
 import PenIcon from '../../Icons/PenIcon.vue';
 import TimesIcon from '../../Icons/TimesIcon.vue';
 import Paginator from '../../UI/Paginator.vue';
+import RemoveMesh from '../../../editor/plugins/cache/commands/RemoveMesh.js';
 import { usePopups } from '../../../composables/usePopups.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useToast } from '../../../composables/useToast.js';
+import { useEditor } from '../../../composables/useEditor.js';
 import { ref } from 'vue';
-
 const { sdk } = useSceneSDK();
 const popups = usePopups();
 const toastCtrl = useToast();
+const editorCtrl = useEditor();
 const paginatorRef = ref();
 
 const destroy = async (mesh) => {
@@ -47,9 +49,9 @@ const destroy = async (mesh) => {
     if (!confirm) return;
     try {
         await sdk.api.MeshController.destroy({uuid: mesh.uuid});
+        await editorCtrl.invoke(new RemoveMesh(mesh.uuid))
         paginatorRef.value.paginator.page=1;
         paginatorRef.value.paginator.refresh();
-        console.log('todo: remove mesh from cache');
         toastCtrl.add('Mesh deleted', 5000, 'success');
     } catch (error) {
         console.error(error);

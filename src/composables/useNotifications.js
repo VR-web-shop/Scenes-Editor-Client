@@ -21,7 +21,7 @@ export const useNotifications = () => {
         
         const sceneUUID = router.currentRoute.value.params.sceneUUID;
         const { sdk } = useSceneSDK();
-        const { rows } = await sdk.api.SceneProductController.findAll({ 
+        const { rows: sceneProducts } = await sdk.api.SceneProductController.findAll({ 
             limit: 1000, 
             where: { 
                 scene_uuid: sceneUUID,
@@ -32,21 +32,48 @@ export const useNotifications = () => {
             ]
         })
 
-        if (rows.length === 0) {
-            return;
+        if (sceneProducts.length > 0) {
+            add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
+                `You got ${sceneProducts.length} products without a mesh`,
+                () => {
+                    const row = sceneProducts.shift();
+                    usePopups().open('objects-edit-scene-product', {
+                        recordData: {...row}
+                    })
+                }
+            );
         }
 
-        add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
-            `You got ${rows.length} products without a mesh`,
-            () => {
-                const row = rows.shift();
-                usePopups().open('objects-edit-scene-product', {
-                    recordData: {...row}
-                })
-            }
-        );
+        const { rows: sceneBaskets } = await sdk.api.SceneBasketController.findAll({ 
+            limit: 1000, 
+            where: { 
+                scene_uuid: sceneUUID,
+                state_name: 'MeshRequired'
+            },
+            include: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'ObjectOffset' },
+                { model: 'PlaceholderOffset' }
+            ]
+        })
 
-        Object.values(callbacks).forEach(cb => cb(notifications.value));
+        if (sceneBaskets.length > 0) {
+            add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
+                `You got ${sceneBaskets.length} baskets without a mesh`,
+                () => {
+                    const row = sceneBaskets.shift();
+                    usePopups().open('objects-edit-basket', {
+                        recordData: {...row}
+                    })
+                }
+            );
+        }
+
+        if (notifications.value.length > 0) {
+            Object.values(callbacks).forEach(cb => cb(notifications.value));
+        }
     };
 
     const setCallback = (name, cb) => {

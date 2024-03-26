@@ -85,23 +85,6 @@ export default class View {
     }
 
     /**
-     * Add the initial lights to the scene.
-     */
-    addLights(objects) {
-        /**
-         * Add the inital light as dynamic objects
-         */ 
-        const lightConfig = this.viewConfiguration.lightConfig
-        const lightInstances = lightConfig.instances
-        for (const lightConfig of lightInstances) {
-            const { instance, position } = lightConfig
-            instance.position.copy(position)
-            this.scene.add(instance)
-            objects.add(instance)
-        }
-    }
-
-    /**
      * Clear the view.
      * 
      * @returns {void}

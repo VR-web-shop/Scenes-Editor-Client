@@ -95,12 +95,6 @@ const submit = async () => {
     if (uiRotationValues.z === 0) uiRotationValues.z = 0.0001;
     
     if (uuid.value) {
-        await sdk.api.SceneCheckoutController.update({
-            uuid: uuid.value,
-            name: name.value,
-            mesh_uuid: mesh.value.uuid
-        });
-
         await sdk.api.Vector3DController.update({
             uuid: props.data.recordData.SurfaceOffset.uuid,
             x: surfaceOffsetValues.x,
@@ -129,10 +123,11 @@ const submit = async () => {
             z: uiRotationValues.z
         });
 
-        const { rows } = await sdk.api.SceneCheckoutController.findAll({
-            limit: 1,
-            where: { uuid: uuid.value },
-            include: [
+        const sceneCheckout = await sdk.api.SceneCheckoutController.update({
+            uuid: uuid.value,
+            name: name.value,
+            mesh_uuid: mesh.value.uuid,
+            responseInclude: [
                 { model: 'Position' },
                 { model: 'Rotation' },
                 { model: 'Scale' },
@@ -141,14 +136,14 @@ const submit = async () => {
                 { model: 'UIOffset' },
                 { model: 'UIRotation' },
                 { model: 'Mesh' }
-            ]     
-        })
-        console.log(rows[0])
+            ]
+        });
+
         await editorCtrl.invoke(new UpdateObject(
             uuid.value,
             name.value,
             mesh.value.uuid,
-            rows[0]
+            sceneCheckout
         ));
 
         toastCtrl.add('Checkout updated', 5000, 'success');
@@ -165,14 +160,28 @@ const submit = async () => {
             surface_size_uuid: surfaceSize.uuid,
             ui_offset_uuid: uiOffset.uuid,
             ui_rotation_uuid: uiRotation.uuid,
-            scene_uuid: sceneUUID
+            scene_uuid: sceneUUID,
+            responseInclude: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'SurfaceOffset' },
+                { model: 'SurfaceSize' },
+                { model: 'UIOffset' },
+                { model: 'UIRotation' },
+                { model: 'Mesh' }
+            ]
         });
 
         await editorCtrl.invoke(new CreateObject(
             'Checkout',
             name.value,
             checkout.uuid,
-            mesh.value.uuid
+            mesh.value.uuid,
+            checkout.Position,
+            checkout.Rotation,
+            checkout.Scale,
+            checkout
         ));
 
         name.value = '';

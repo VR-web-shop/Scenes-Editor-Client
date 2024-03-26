@@ -96,14 +96,24 @@ const submit = async () => {
         const staticObject = await sdk.api.SceneStaticObjectController.create({
             name: name.value,
             mesh_uuid: mesh.value.uuid,
-            scene_uuid: sceneUUID
+            scene_uuid: sceneUUID,
+            responseInclude: [
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'Mesh' },
+            ]
         });
 
         await editorCtrl.invoke(new CreateObject(
             'StaticObject',
             name.value,
             staticObject.uuid,
-            mesh.value.uuid
+            mesh.value.uuid,
+            staticObject.Position,
+            staticObject.Rotation,
+            staticObject.Scale,
+            staticObject
         ))
 
         name.value = '';
