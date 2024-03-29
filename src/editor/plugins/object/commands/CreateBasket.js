@@ -46,7 +46,7 @@ export default class CreateBasket extends CreateObject {
         }
 
         const object = objects.find(this.id);
-        const { ObjectOffset, Placeholder, PlaceholderOffset, InsertAreaOffset, InsertAreaSize } = object.options.recordData;
+        const { ObjectOffset, Placeholder, Pocket, PocketOffset, PlaceholderOffset, InsertAreaOffset, InsertAreaSize } = object.options.recordData;
 
         // Create placeholder
         if (Placeholder) {
@@ -63,6 +63,23 @@ export default class CreateBasket extends CreateObject {
                 )));
             scene.add(placeholder);
             object.options.placeholder = placeholder;
+        }
+
+        // Create pocket
+        if (Pocket) {
+            const pocket = meshCache.clone(Pocket.uuid)
+            if (!pocket) {
+                throw new Error('Unable to clone pocket')
+            }
+
+            pocket.position.copy(object.object.position.clone()
+                .add(new THREE.Vector3(
+                    PocketOffset.x,
+                    PocketOffset.y,
+                    PocketOffset.z
+                )));
+            scene.add(pocket);
+            object.options.pocket = pocket;
         }
 
         const fakeHand = meshCache.clone("FAKE_HAND")

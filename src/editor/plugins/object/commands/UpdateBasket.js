@@ -1,5 +1,5 @@
+import CreateBasket from './CreateBasket.js'
 import UpdateObject from './UpdateObject.js'
-import * as THREE from 'three'
 
 /**
  * @extends Command
@@ -22,7 +22,12 @@ export default class UpdateBasket extends UpdateObject {
      * @throws {Error} if meshName is not a string
      */
     constructor(objectType, labelName, id, meshName, position, rotation, scale, recordData) {
-        super(objectType, labelName, id, meshName, position, rotation, scale, recordData)
+        super(id, labelName, meshName, recordData)
+
+        this.objectType = objectType
+        this.position = position
+        this.rotation = rotation
+        this.scale = scale
     }
 
     /**
@@ -51,58 +56,23 @@ export default class UpdateBasket extends UpdateObject {
         }
 
         const object = objects.find(this.id);
-        const { placeholder:_placeholder, fakeHand:_fakeHand, insertArea:_insertArea } = object.options;
+        const { placeholder:_placeholder, fakeHand:_fakeHand, insertArea:_insertArea, pocket:_pocket } = object.options;
 
         scene.remove(_placeholder);
         scene.remove(_fakeHand);
         scene.remove(_insertArea);
-        
-        const { ObjectOffset, Placeholder, PlaceholderOffset, InsertAreaOffset, InsertAreaSize } = object.options.recordData;
+        scene.remove(_pocket);
 
-        // Create placeholder
-        if (Placeholder) {
-            const placeholder = meshCache.clone(Placeholder.uuid)
-            if (!placeholder) {
-                throw new Error('Unable to clone placeholder')
-            }
-
-            placeholder.position.copy(object.object.position.clone()
-                .add(new THREE.Vector3(
-                    PlaceholderOffset.x, 
-                    PlaceholderOffset.y, 
-                    PlaceholderOffset.z
-                )));
-            scene.add(placeholder);
-            object.options.placeholder = placeholder;
-        }
-
-        // Create fake hand
-        const fakeHand = meshCache.clone("FAKE_HAND")
-        if (!fakeHand) {
-            throw new Error('Unable to clone FAKE_HAND')
-        }
-
-        fakeHand.position.copy(object.object.position.clone()
-            .sub(new THREE.Vector3(
-                ObjectOffset.x, 
-                ObjectOffset.y, 
-                ObjectOffset.z
-            )));
-        scene.add(fakeHand);
-        object.options.fakeHand = fakeHand;
-
-        // Create insert area
-        const insertAreaPosition = object.object.position.clone()
-            .add(new THREE.Vector3(
-                InsertAreaOffset.x, 
-                InsertAreaOffset.y, 
-                InsertAreaOffset.z
-            ));
-        const cubeGeometry = new THREE.BoxGeometry(InsertAreaSize.x, InsertAreaSize.y, InsertAreaSize.z);
-        const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.position.copy(insertAreaPosition);
-        scene.add(cube);
-        object.options.insertArea = cube;
+        const createCommand = new CreateBasket(
+            this.objectType,
+            this.labelName,
+            this.id,
+            this.meshName,
+            this.position,
+            this.rotation,
+            this.scale,
+            this.recordData
+        );
+        await createCommand.execute();
     }
 }

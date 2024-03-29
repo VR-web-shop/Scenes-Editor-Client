@@ -42,10 +42,12 @@ export default class RemoveBasket extends Command {
         }
 
         const object = objects.find(this.id);
-        const { placeholder, fakeHand } = object.options;
+        const { placeholder, fakeHand, insertArea, pocket } = object.options;
 
         scene.remove(placeholder);
         scene.remove(fakeHand);
+        scene.remove(insertArea);
+        scene.remove(pocket);
         objects.remove(this.id)
     }
 }

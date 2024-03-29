@@ -2,6 +2,7 @@
     <form @submit.prevent="submit" class="p-3 text-white">
         <VectorInput title="Object offset" ref="objectOffsetRef" label="Object Offset" class="mb-3" />
         <VectorInput title="Placeholder offset" ref="placeholderOffsetRef" label="Placeholder Offset" class="mb-3" />
+        <VectorInput title="Pocket offset" ref="pocketOffsetRef" label="Pocket Offset" class="mb-3" />
         <VectorInput title="Insert area offset" ref="insertAreaOffsetRef" label="Insert area offset" class="mb-3" />
         <VectorInput title="Insert area size" ref="insertAreaSizeRef" label="Insert area size" class="mb-3" />
 
@@ -34,6 +35,25 @@
                 <template #default="{ entities }">
                     <select v-model="placeholderMesh" class="w-full p-2 text-sm bg-white/[.10] rounded-md">
                         <option value="" class="text-black">Select Placeholder Mesh</option>
+                        <option v-for="mesh in entities" :key="mesh.uuid" :value="{ uuid: mesh.uuid, name: mesh.name }"
+                            class="text-black">
+                            {{ mesh.name }}
+                        </option>
+                    </select>
+                </template>
+            </Paginator>
+        </div>
+
+        <div class="mb-3">
+            <p class="mb-1 text-gray-500">Pocket Mesh</p>
+            <Paginator :findAllMethod="sdk.api.MeshController.findAll" :limit="10">
+                <template #empty>
+                    <div class="text-center">No meshes found</div>
+                </template>
+
+                <template #default="{ entities }">
+                    <select v-model="pocketMesh" class="w-full p-2 text-sm bg-white/[.10] rounded-md">
+                        <option value="" class="text-black">Select Pocket Mesh</option>
                         <option v-for="mesh in entities" :key="mesh.uuid" :value="{ uuid: mesh.uuid, name: mesh.name }"
                             class="text-black">
                             {{ mesh.name }}
@@ -81,9 +101,14 @@ const placeholderMesh = ref(props.data && props.data.recordData.Placeholder ? {
     uuid: props.data.recordData.Placeholder.uuid,
     name: props.data.recordData.Placeholder.name
 } : '');
+const pocketMesh = ref(props.data && props.data.recordData.Pocket ? {
+    uuid: props.data.recordData.Pocket.uuid,
+    name: props.data.recordData.Pocket.name
+} : '');
 
 const objectOffsetRef = ref();
 const placeholderOffsetRef = ref();
+const pocketOffsetRef = ref();
 const insertAreaOffsetRef = ref();
 const insertAreaSizeRef = ref();
 
@@ -98,8 +123,14 @@ const submit = async () => {
         return
     }
 
+    if (!pocketMesh.value) {
+        toastCtrl.add('Pocket Mesh is required', 5000, 'error');
+        return
+    }
+
     const objectOffsetValues = objectOffsetRef.value.getVector();
     const placeholderOffsetValues = placeholderOffsetRef.value.getVector();
+    const pocketOffsetValues = pocketOffsetRef.value.getVector();
     const insertAreaOffsetValues = insertAreaOffsetRef.value.getVector();
     const insertAreaSizeValues = insertAreaSizeRef.value.getVector();
 
@@ -109,6 +140,9 @@ const submit = async () => {
     if (placeholderOffsetValues.x === 0) placeholderOffsetValues.x = 0.001;
     if (placeholderOffsetValues.y === 0) placeholderOffsetValues.y = 0.001;
     if (placeholderOffsetValues.z === 0) placeholderOffsetValues.z = 0.001;
+    if (pocketOffsetValues.x === 0) pocketOffsetValues.x = 0.001;
+    if (pocketOffsetValues.y === 0) pocketOffsetValues.y = 0.001;
+    if (pocketOffsetValues.z === 0) pocketOffsetValues.z = 0.001;
     if (insertAreaOffsetValues.x === 0) insertAreaOffsetValues.x = 0.001;
     if (insertAreaOffsetValues.y === 0) insertAreaOffsetValues.y = 0.001;
     if (insertAreaOffsetValues.z === 0) insertAreaOffsetValues.z = 0.001;
@@ -133,6 +167,13 @@ const submit = async () => {
         });
 
         await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.PocketOffset.uuid,
+            x: pocketOffsetValues.x,
+            y: pocketOffsetValues.y,
+            z: pocketOffsetValues.z
+        });
+
+        await sdk.api.Vector3DController.update({
             uuid: props.data.recordData.InsertAreaOffset.uuid,
             x: insertAreaOffsetValues.x,
             y: insertAreaOffsetValues.y,
@@ -150,14 +191,17 @@ const submit = async () => {
             uuid: uuid.value,
             object_uuid: objectMesh.value.uuid,
             placeholder_uuid: placeholderMesh.value.uuid,
+            pocket_uuid: pocketMesh.value.uuid,
             responseInclude: [
                 { model: 'Position' },
                 { model: 'Rotation' },
                 { model: 'Scale' },
                 { model: 'Object' },
                 { model: 'Placeholder' },
+                { model: 'Pocket' },
                 { model: 'ObjectOffset' },
                 { model: 'PlaceholderOffset' },
+                { model: 'PocketOffset' },
                 { model: 'InsertAreaOffset' },
                 { model: 'InsertAreaSize' }
             ]    
@@ -176,9 +220,13 @@ const submit = async () => {
             ));
         } else {
             await editorCtrl.invoke(new UpdateBasket(
-                uuid.value,
+                'Basket',
                 'Scene Basket',
+                uuid.value,
                 objectMesh.value.uuid,
+                sceneBasket.Position,
+                sceneBasket.Rotation,
+                sceneBasket.Scale,
                 sceneBasket
             ));
         }
@@ -193,6 +241,7 @@ onMounted(async () => {
     if (!props.data) return;
     objectOffsetRef.value.setVector(props.data.recordData.ObjectOffset);
     placeholderOffsetRef.value.setVector(props.data.recordData.PlaceholderOffset);
+    pocketOffsetRef.value.setVector(props.data.recordData.PocketOffset);
     insertAreaOffsetRef.value.setVector(props.data.recordData.InsertAreaOffset);
     insertAreaSizeRef.value.setVector(props.data.recordData.InsertAreaSize);
 })

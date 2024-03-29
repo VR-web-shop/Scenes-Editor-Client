@@ -56,6 +56,7 @@ export const useNotifications = () => {
                 { model: 'Scale' },
                 { model: 'ObjectOffset' },
                 { model: 'PlaceholderOffset' },
+                { model: 'PocketOffset' },
                 { model: 'InsertAreaOffset' },
                 { model: 'InsertAreaSize' }
             ]
