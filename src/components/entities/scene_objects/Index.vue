@@ -22,7 +22,12 @@
                             </div>
 
                             <div class="flex items-center gap-1">
-                                <button @click="openPopup(object)"
+                                <button @click="focus(object)"
+                                    class="p-1 border border-gray-300 rounded-md hover:bg-gray-300">
+                                    <EyeIcon fill="white" width="0.8em" />
+                                </button>
+
+                                <button v-if="isEditable(object)" @click="openPopup(object)"
                                     class="p-1 border border-gray-300 rounded-md hover:bg-gray-300">
                                     <PenIcon fill="white" width="0.8em" />
                                 </button>
@@ -43,6 +48,8 @@
 <script setup>
 import ReadObjects from '../../../editor/plugins/object/readers/ReadObjects.js';
 import RemoveObject from '../../../editor/plugins/object/commands/RemoveObject.js';
+import RemoveCheckout from '../../../editor/plugins/object/commands/RemoveCheckout.js';
+import SetCameraFocus from '../../../editor/src/view/commands/SetCameraFocus.js';
 import LightBulbIcon from '../../Icons/LightBulbIcon.vue';
 import CubesIcon from '../../Icons/CubesIcon.vue';
 import SquareIcon from '../../Icons/SquareIcon.vue';
@@ -50,6 +57,8 @@ import CheckoutIcon from '../../Icons/CheckoutIcon.vue';
 import BasketIcon from '../../Icons/BasketIcon.vue';
 import TagIcon from '../../Icons/TagIcon.vue';
 import CubeIcon from '../../Icons/CubeIcon.vue';
+import CameraIcon from '../../Icons/CameraIcon.vue';
+import EyeIcon from '../../Icons/EyeIcon.vue';
 import PenIcon from '../../Icons/PenIcon.vue';
 import TimesIcon from '../../Icons/TimesIcon.vue';
 import Paginator from '../../UI/Paginator.vue';
@@ -70,7 +79,8 @@ const icons = {
     'Checkout': CheckoutIcon,
     'Product': TagIcon,
     'Basket': BasketIcon,
-    'BasketPlaceholder': BasketIcon
+    'BasketPlaceholder': BasketIcon,
+    'Camera': CameraIcon
 }
 
 const popups = usePopups();
@@ -103,7 +113,10 @@ async function findAll(params) {
     }
 }
 
-const notDeleteableTypes = ['Basket', 'BasketPlaceholder', 'Product'];
+const notEditableTypes = ['Camera'];
+const isEditable = (object) => !notEditableTypes.includes(object.options.objectType);
+
+const notDeleteableTypes = ['Basket', 'BasketPlaceholder', 'Product', 'Camera'];
 const isDeleteable = (object) => !notDeleteableTypes.includes(object.options.objectType);
 
 const destroy = async (object) => {
@@ -114,6 +127,8 @@ const destroy = async (object) => {
 
     const confirm = window.confirm('Are you sure you want to delete this object?');
     if (!confirm) return;
+
+    let removeCmd = RemoveObject;
     try {
         switch (object.options.objectType) {
             case 'Light':
@@ -127,12 +142,13 @@ const destroy = async (object) => {
                 break;
             case 'Checkout':
                 await sdk.api.SceneCheckoutController.destroy({ uuid: object.options.recordData.uuid });
+                removeCmd = RemoveCheckout;
                 break;
             default:
                 break;
         }
 
-        editorCtrl.invoke(new RemoveObject(object.options.recordData.uuid));
+        editorCtrl.invoke(new removeCmd(object.options.recordData.uuid));
         paginatorRef.value.paginator.page=1;
         paginatorRef.value.paginator.refresh();
         toastCtrl.add(`${object.options.objectType} deleted`, 5000, 'success');
@@ -140,5 +156,11 @@ const destroy = async (object) => {
         console.error(error);
     }
 };
+
+const focus = async (object) => {
+    const { x, y, z } = object.options.recordData.Position;
+    const offset = { x: 2, y: 2, z: 2 };
+    editorCtrl.invoke(new SetCameraFocus(object.object, offset));
+}
 
 </script>

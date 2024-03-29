@@ -15,6 +15,10 @@ function onPointerMove(object) {
     if (tool) tool.onPointerMove(object.event)
 }
 
+function onScroll(object) {
+    if (tool) tool.onScroll(object.event)
+}
+
 function onSelected(object) {
     if (tool) tool.onSelected(object.event.event)
 }
@@ -136,6 +140,7 @@ export default class Tools extends BasePlugin {
         tools.events.addListener('pointermove', onPointerMove)
         tools.events.addListener('select', onSelected)
         tools.events.addListener('deselect', onDeselected)
+        document.addEventListener('wheel', onScroll)
     }
 
     /**
@@ -149,5 +154,6 @@ export default class Tools extends BasePlugin {
         tools.events.removeListener('pointermove', onPointerMove)
         tools.events.removeListener('select', onSelected)
         tools.events.removeListener('deselect', onDeselected)
+        document.removeEventListener('wheel', onScroll)
     }
 }

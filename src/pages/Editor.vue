@@ -1,6 +1,4 @@
 <script setup>
-import * as THREE from 'three';
-
 import Restricted from '../components/UI/Restricted.vue';
 import Loader from '../components/UI/Loader.vue';
 import Tools from '../components/top/Tools.vue';
@@ -9,17 +7,8 @@ import Inspector from '../components/inspector/Inspector.vue';
 import Bottom from '../components/bottom/Bottom.vue';
 import Editor from '../components/Editor.vue';
 
-import LoadTexture from '../editor/plugins/cache/commands/LoadTexture.js';
-import LoadMaterial from '../editor/plugins/cache/commands/LoadMaterial.js';
-import LoadMesh from '../editor/plugins/cache/commands/LoadMesh';
-import SetSceneColor from '../editor/src/view/commands/SetSceneColor.js';
-
-import CreateObject from '../editor/plugins/object/commands/CreateObject';
-
 import { useScene } from '../composables/useScene.js';
-
 import { router } from '../router.js';
-import { useSceneSDK } from '../composables/useScenesSDK.js';
 import { ref, onMounted } from 'vue';
 
 const editorRef = ref();
@@ -35,7 +24,7 @@ onMounted(async () => {
     await sceneCtrl.loadAllTextures()
     await sceneCtrl.loadAllMaterials()
     await sceneCtrl.loadAllMeshes()
-    await sceneCtrl.loadScene(sceneUUID)
+    await sceneCtrl.loadScene(sceneUUID)    
     editor.resume()
 })
 </script>

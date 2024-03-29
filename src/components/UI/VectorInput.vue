@@ -4,17 +4,17 @@
         <div class="flex items-center justify-between gap-1 text-sm">
             <div class="w-1/3 flex items-center justify-between gap-1 bg-white/[.10]">
                 <label for="x" class="px-1">X</label>
-                <input type="number" placeholder="X" v-model="x" class="w-full p-1 bg-white/[.10]" />
+                <input type="number" step="0.001" placeholder="X" v-model="x" class="w-full p-1 bg-white/[.10]" />
             </div>
 
             <div class="w-1/3 flex items-center justify-between gap-1 bg-white/[.10]">
                 <label for="y" class="px-1">Y</label>
-                <input type="number" placeholder="Y" v-model="y" class="w-full p-1 bg-white/[.10]" />
+                <input type="number" step="0.001" placeholder="Y" v-model="y" class="w-full p-1 bg-white/[.10]" />
             </div>
 
             <div class="w-1/3 flex items-center justify-between gap-1 bg-white/[.10]">
                 <label for="z" class="px-1">Z</label>
-                <input type="number" placeholder="Z" v-model="z" class="w-full p-1 bg-white/[.10]" />
+                <input type="number" step="0.001" placeholder="Z" v-model="z" class="w-full p-1 bg-white/[.10]" />
             </div>
         </div>
     </div>

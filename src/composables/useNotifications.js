@@ -55,7 +55,9 @@ export const useNotifications = () => {
                 { model: 'Rotation' },
                 { model: 'Scale' },
                 { model: 'ObjectOffset' },
-                { model: 'PlaceholderOffset' }
+                { model: 'PlaceholderOffset' },
+                { model: 'InsertAreaOffset' },
+                { model: 'InsertAreaSize' }
             ]
         })
 

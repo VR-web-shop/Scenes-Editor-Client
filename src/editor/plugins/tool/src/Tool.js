@@ -115,6 +115,16 @@ export default class Tool {
     }
 
     /**
+     * Handle scroll event
+     * 
+     * @param {Object} object
+     * @returns {void}
+     * @abstract
+     */
+    onScroll(object) {
+    }
+
+    /**
      * Determine if the tool is ready to deselect
      * 
      * @returns {boolean}

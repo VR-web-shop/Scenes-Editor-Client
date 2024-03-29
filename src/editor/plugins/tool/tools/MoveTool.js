@@ -3,6 +3,8 @@ import VisualTool from "../src/VisualTool.js";
 import Util from "../src/util.js";
 import * as THREE from "three";
 
+const arrowSize = new THREE.Vector3(1.5, 1.5, 1.5);
+
 class MoveVisualTool extends VisualTool {
     constructor(tool) {
         super(tool)
@@ -11,9 +13,9 @@ class MoveVisualTool extends VisualTool {
 
     setupArrows(size) {
         const position = new THREE.Vector3()
-        const zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), position, size.z, 0x0000ff)
-        const yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), position, size.y, 0x00ff00)
-        const xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), position, size.x, 0xff0000)
+        const zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), position, arrowSize.z, 0x0000ff)
+        const yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), position, arrowSize.y, 0x00ff00)
+        const xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), position, arrowSize.x, 0xff0000)
 
         zAxis.name = 'z'
         yAxis.name = 'y'
@@ -24,13 +26,32 @@ class MoveVisualTool extends VisualTool {
         this.group.add(xAxis)
 
         this.arrows.push(zAxis, yAxis, xAxis)
+        this.updateArrowSize()
+    }
+
+    updateArrowSize() {
+        if (this.arrows.length === 0) {
+            return
+        }
+        const camera = this.tool.options.view.camera
+        const position = this.arrows[0].position.clone()
+        const distance = camera.position.distanceTo(position)
+        const scale = distance / 10
+
+        for (const arrow of this.arrows) {
+            arrow.scale.copy(arrowSize.clone().multiplyScalar(scale))
+        }
+
+        for (const collider of this.colliders) {
+            collider.scale.copy(arrowSize.clone().multiplyScalar(scale))
+        }
     }
 
     setupColliders(size) {
         const wireframeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true })
-        const zCollider = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, size.z, 10), wireframeMaterial)
-        const yCollider = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, size.y, 10), wireframeMaterial)
-        const xCollider = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, size.x, 10), wireframeMaterial)
+        const zCollider = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, arrowSize.z, 10), wireframeMaterial)
+        const yCollider = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, arrowSize.y, 10), wireframeMaterial)
+        const xCollider = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, arrowSize.x, 10), wireframeMaterial)
 
         zCollider.rotation.x = Math.PI / 2
         xCollider.rotation.z = Math.PI / 2
@@ -161,6 +182,18 @@ export default class MoveTool extends Tool {
          * If an axis is selected we want to move the object by the axis
          */
         this.visualTool.onPointerMove(object)
+
+        /**
+         * Update arrow size depending on the distance to the camera
+         */
+        this.visualTool.updateArrowSize()
+    }
+
+    onScroll(object) {
+        /**
+         * Update arrow size depending on the distance to the camera
+         */
+        this.visualTool.updateArrowSize()
     }
 
     isReadyToDeselect() {

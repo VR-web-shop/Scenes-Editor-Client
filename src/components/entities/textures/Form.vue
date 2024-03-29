@@ -81,7 +81,7 @@ const submit = async () => {
         });
         console.log('Todo: update command')
         //await editorCtrl.invoke(new UpdateTexture(texture.name, texture.source, texture.texture_type_name));
-        toastCtrl.add('Texture update', 5000, 'success');
+        toastCtrl.add('Texture updated successfully.  Note: Updating textures will first take effect after reload due to complexity of changing textures in runtime.', 5000, 'success');
     } else {
         const newTexture = await sdk.api.TextureController.create({
             name: name.value,

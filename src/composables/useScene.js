@@ -4,6 +4,8 @@ import LoadMaterial from "../editor/plugins/cache/commands/LoadMaterial.js";
 import LoadTexture from "../editor/plugins/cache/commands/LoadTexture.js";
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
 
+import CreateBasket from "../editor/plugins/object/commands/CreateBasket.js";
+import CreateCheckout from "../editor/plugins/object/commands/CreateCheckout.js";
 import CreateLight from "../editor/plugins/object/commands/CreateLight.js";
 import CreateObject from "../editor/plugins/object/commands/CreateObject.js";
 import SetSceneColor from "../editor/src/view/commands/SetSceneColor.js";
@@ -20,8 +22,26 @@ export function useScene() {
         return this;
     }
 
+    async function loadFakeHand() {
+        const url = 'meshes/fake-hand.glb';
+        await editor.invoke(new LoadMesh('FAKE_HAND', url, []));
+    }
+
+    async function loadFakeCamera() {
+        const url = 'meshes/fake-camera.glb';
+        await editor.invoke(new LoadMesh('FAKE_CAMERA', url, []));
+    }
+
+    async function loadFakeCharacter() {
+        const url = 'meshes/fake-character.glb';
+        await editor.invoke(new LoadMesh('FAKE_CHARACTER', url, []));
+    }
+
     async function loadScene(sceneUUID) {
         if (!editor) throw new Error('Editor not set');
+        await loadFakeHand();
+        await loadFakeCamera();
+        await loadFakeCharacter();
 
         const { rows } = await sdk.api.SceneController.findAll({
             limit: 100, where: { uuid: sceneUUID }, include: [
@@ -29,10 +49,11 @@ export function useScene() {
                 { model: 'SceneLights', include: ['Position', 'Rotation'] },
                 { model: 'SceneStaticObjects', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
                 { model: 'SceneFloors', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
-                { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder', 'ObjectOffset', 'PlaceholderOffset'] },
+                { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder', 'ObjectOffset', 'PlaceholderOffset', 'InsertAreaOffset', 'InsertAreaSize'] },
                 { model: 'SceneCheckouts', include: ['Position', 'Rotation', 'Scale', 'SurfaceOffset', 'SurfaceSize', 'UIOffset', 'UIRotation', 'Mesh'] },
                 { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh', 'Product'] },
-                { model: 'SceneBackground' }
+                { model: 'SceneBackground' },
+                { model: 'SceneCharacter', include: ['Position', 'Rotation'] }
 
             ]
         });
@@ -45,13 +66,13 @@ export function useScene() {
         const {
             SceneBackground, SceneBasket, SceneCheckouts,
             SceneFloors, SceneStaticObjects, SceneLights,
-            SceneCamera, SceneProducts
+            SceneCamera, SceneProducts, SceneCharacter
         } = scene;
 
         await editor.invoke(new SetSceneColor(SceneBackground.hex));
 
         if (SceneBasket.Object) {
-            await editor.invoke(new CreateObject(
+            await editor.invoke(new CreateBasket(
                 'Basket',
                 'Scene Basket',
                 SceneBasket.uuid,
@@ -61,23 +82,36 @@ export function useScene() {
                 SceneBasket.Scale,
                 SceneBasket
             ));
-        }
-
-        if (SceneBasket.Placeholder) {
+        }      
+        
+        if (SceneCamera) {
             await editor.invoke(new CreateObject(
-                'BasketPlaceholder',
-                'Scene Basket Placeholder',
-                SceneBasket.uuid + '-basket-placeholder',
-                SceneBasket.Placeholder.uuid,
-                SceneBasket.Position,
-                SceneBasket.Rotation,
-                SceneBasket.Scale,
-                SceneBasket
+                'Camera',
+                'Scene Camera',
+                SceneCamera.uuid,
+                "FAKE_CAMERA",
+                SceneCamera.Position,
+                SceneCamera.Rotation,
+                {x: 1, y: 1, z: 1},
+                SceneCamera
+            ));
+        } 
+
+        if (SceneCharacter) {
+            await editor.invoke(new CreateObject(
+                'Character',
+                'Scene Character',
+                SceneCharacter.uuid,
+                "FAKE_CHARACTER",
+                SceneCharacter.Position,
+                SceneCharacter.Rotation,
+                {x: 1, y: 1, z: 1},
+                SceneCharacter
             ));
         }
 
         for (const checkout of SceneCheckouts) {
-            await editor.invoke(new CreateObject(
+            await editor.invoke(new CreateCheckout(
                 'Checkout',
                 checkout.name,
                 checkout.uuid,
@@ -161,7 +195,9 @@ export function useScene() {
                 objectType === 'Product' ||
                 objectType === 'Floor' ||
                 objectType === 'Checkout' ||
-                objectType === 'StaticObject') {
+                objectType === 'StaticObject' ||
+                objectType === 'Camera' ||
+                objectType === 'Character') {
 
                 if (!recordData.Position || !recordData.Rotation) {
                     console.error(`Position or Rotation not found for with ID ${id} and it cannot be saved.`, recordData);
@@ -184,6 +220,16 @@ export function useScene() {
                     y: rotation.y,
                     z: rotation.z
                 });
+
+                if (recordData.Scale) {
+                    const scaleUUID = recordData.Scale.uuid;
+                    await sdk.api.Vector3DController.update({
+                        uuid: scaleUUID,
+                        x: scale.x,
+                        y: scale.y,
+                        z: scale.z
+                    });
+                }
             }
         }
     }

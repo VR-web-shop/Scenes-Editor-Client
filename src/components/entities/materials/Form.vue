@@ -149,8 +149,7 @@ const submit = async () => {
             ]
         });
 
-        console.log('Todo: update command');
-        toastCtrl.add('Material updated successfully');
+        toastCtrl.add('Material updated successfully. Note: Updating materials will first take effect after reload due to complexity of changing materials in runtime.');
 
     } else {
         const material = await sdk.api.MaterialController.create({

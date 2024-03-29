@@ -93,6 +93,7 @@ export default class VisualTool {
             this.axis.setName(intersection.object.name)
             this.axis.select();
             view.controls.enabled = false
+            this.onSelectAxis()
             return true
         }
 
@@ -101,8 +102,15 @@ export default class VisualTool {
 
     deselectAxisCollider() {
         if (this.axis.isSelected) {
+            this.onDeselectAxis()
             this.axis.deselect();
             this.tool.options.view.controls.enabled = true
         }
+    }
+
+    onSelectAxis() {
+    }
+
+    onDeselectAxis() {
     }
 }

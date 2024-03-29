@@ -139,9 +139,7 @@ const submit = async () => {
             ]
         });
 
-        console.log('Todo: update command')
-
-        toastCtrl.add('Mesh updated successfully');
+        toastCtrl.add('Mesh updated successfully. Note: Updating meshes will first take effect after reload due to complexity of changing meshes in runtime.');
     } else {
         const mesh = await sdk.api.MeshController.create({
             name: name.value,

@@ -107,11 +107,15 @@ export default class Objects extends BasePlugin {
         this.objects[index] = object
     }
 
+    findAllByType(objectType) {
+        return this.objects.filter(({ options }) => options.objectType === objectType)
+    }
+
     find(id) {
         return this.objects.find(({ options }) => options.id === id)
     }
 
     getObject3Ds() {
-        return this.objects.map(({ object }) => object)
+        return this.objects.filter(({ object }) => object.visible).map(({ object }) => object)
     }
 }

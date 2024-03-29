@@ -33,8 +33,8 @@
 <script setup>
 import Paginator from '../../UI/Paginator.vue';
 import VectorInput from '../../UI/VectorInput.vue';
-import CreateObject from '../../../editor/plugins/object/commands/CreateObject.js';
-import UpdateObject from '../../../editor/plugins/object/commands/UpdateObject.js';
+import CreateCheckout from '../../../editor/plugins/object/commands/CreateCheckout.js';
+import UpdateCheckout from '../../../editor/plugins/object/commands/UpdateCheckout.js';
 import { useEditor } from '../../../composables/useEditor.js';
 import { router } from '../../../router.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
@@ -139,7 +139,7 @@ const submit = async () => {
             ]
         });
 
-        await editorCtrl.invoke(new UpdateObject(
+        await editorCtrl.invoke(new UpdateCheckout(
             uuid.value,
             name.value,
             mesh.value.uuid,
@@ -173,7 +173,7 @@ const submit = async () => {
             ]
         });
 
-        await editorCtrl.invoke(new CreateObject(
+        await editorCtrl.invoke(new CreateCheckout(
             'Checkout',
             name.value,
             checkout.uuid,

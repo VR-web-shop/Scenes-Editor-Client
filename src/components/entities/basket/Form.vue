@@ -2,6 +2,8 @@
     <form @submit.prevent="submit" class="p-3 text-white">
         <VectorInput title="Object offset" ref="objectOffsetRef" label="Object Offset" class="mb-3" />
         <VectorInput title="Placeholder offset" ref="placeholderOffsetRef" label="Placeholder Offset" class="mb-3" />
+        <VectorInput title="Insert area offset" ref="insertAreaOffsetRef" label="Insert area offset" class="mb-3" />
+        <VectorInput title="Insert area size" ref="insertAreaSizeRef" label="Insert area size" class="mb-3" />
 
         <div class="mb-3">
             <p class="mb-1 text-gray-500">Object Mesh</p>
@@ -50,8 +52,8 @@
 <script setup>
 import Paginator from '../../UI/Paginator.vue';
 import VectorInput from '../../UI/VectorInput.vue';
-import CreateObject from '../../../editor/plugins/object/commands/CreateObject.js';
-import UpdateObject from '../../../editor/plugins/object/commands/UpdateObject.js';
+import CreateBasket from '../../../editor/plugins/object/commands/CreateBasket.js';
+import UpdateBasket from '../../../editor/plugins/object/commands/UpdateBasket.js';
 import { useNotifications } from '../../../composables/useNotifications';
 import { useEditor } from '../../../composables/useEditor.js';
 import { router } from '../../../router.js';
@@ -82,6 +84,8 @@ const placeholderMesh = ref(props.data && props.data.recordData.Placeholder ? {
 
 const objectOffsetRef = ref();
 const placeholderOffsetRef = ref();
+const insertAreaOffsetRef = ref();
+const insertAreaSizeRef = ref();
 
 const submit = async () => {
     if (!objectMesh.value) {
@@ -96,13 +100,22 @@ const submit = async () => {
 
     const objectOffsetValues = objectOffsetRef.value.getVector();
     const placeholderOffsetValues = placeholderOffsetRef.value.getVector();
+    const insertAreaOffsetValues = insertAreaOffsetRef.value.getVector();
+    const insertAreaSizeValues = insertAreaSizeRef.value.getVector();
 
-    if (objectOffsetValues.x === 0) objectOffsetValues.x = 0.0001;
-    if (objectOffsetValues.y === 0) objectOffsetValues.y = 0.0001;
-    if (objectOffsetValues.z === 0) objectOffsetValues.z = 0.0001;
-    if (placeholderOffsetValues.x === 0) placeholderOffsetValues.x = 0.0001;
-    if (placeholderOffsetValues.y === 0) placeholderOffsetValues.y = 0.0001;
-    if (placeholderOffsetValues.z === 0) placeholderOffsetValues.z = 0.0001;
+    if (objectOffsetValues.x === 0) objectOffsetValues.x = 0.001;
+    if (objectOffsetValues.y === 0) objectOffsetValues.y = 0.001;
+    if (objectOffsetValues.z === 0) objectOffsetValues.z = 0.001;
+    if (placeholderOffsetValues.x === 0) placeholderOffsetValues.x = 0.001;
+    if (placeholderOffsetValues.y === 0) placeholderOffsetValues.y = 0.001;
+    if (placeholderOffsetValues.z === 0) placeholderOffsetValues.z = 0.001;
+    if (insertAreaOffsetValues.x === 0) insertAreaOffsetValues.x = 0.001;
+    if (insertAreaOffsetValues.y === 0) insertAreaOffsetValues.y = 0.001;
+    if (insertAreaOffsetValues.z === 0) insertAreaOffsetValues.z = 0.001;
+    if (insertAreaSizeValues.x === 0) insertAreaSizeValues.x = 0.001;
+    if (insertAreaSizeValues.y === 0) insertAreaSizeValues.y = 0.001;
+    if (insertAreaSizeValues.z === 0) insertAreaSizeValues.z = 0.001;
+
     
     if (uuid.value) {
         await sdk.api.Vector3DController.update({
@@ -119,6 +132,20 @@ const submit = async () => {
             z: placeholderOffsetValues.z
         });
 
+        await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.InsertAreaOffset.uuid,
+            x: insertAreaOffsetValues.x,
+            y: insertAreaOffsetValues.y,
+            z: insertAreaOffsetValues.z
+        });
+
+        await sdk.api.Vector3DController.update({
+            uuid: props.data.recordData.InsertAreaSize.uuid,
+            x: insertAreaSizeValues.x,
+            y: insertAreaSizeValues.y,
+            z: insertAreaSizeValues.z
+        });
+
         const sceneBasket = await sdk.api.SceneBasketController.update({
             uuid: uuid.value,
             object_uuid: objectMesh.value.uuid,
@@ -130,12 +157,14 @@ const submit = async () => {
                 { model: 'Object' },
                 { model: 'Placeholder' },
                 { model: 'ObjectOffset' },
-                { model: 'PlaceholderOffset' }
+                { model: 'PlaceholderOffset' },
+                { model: 'InsertAreaOffset' },
+                { model: 'InsertAreaSize' }
             ]    
         });
 
         if (props.data && props.data.recordData.object_uuid === null) {
-            await editorCtrl.invoke(new CreateObject(
+            await editorCtrl.invoke(new CreateBasket(
                 'Basket',
                 'Scene Basket',
                 uuid.value,
@@ -146,30 +175,10 @@ const submit = async () => {
                 sceneBasket
             ));
         } else {
-            await editorCtrl.invoke(new UpdateObject(
+            await editorCtrl.invoke(new UpdateBasket(
                 uuid.value,
                 'Scene Basket',
                 objectMesh.value.uuid,
-                sceneBasket
-            ));
-        }
-
-        if (props.data && props.data.recordData.placeholder_uuid === null) {
-            await editorCtrl.invoke(new CreateObject(
-                'BasketPlaceholder',
-                'Scene Basket Placeholder',
-                uuid.value + '-basket-placeholder',
-                objectMesh.value.uuid,
-                sceneBasket.Position,
-                sceneBasket.Rotation,
-                sceneBasket.Scale,
-                sceneBasket
-            ));
-        } else {
-            await editorCtrl.invoke(new UpdateObject(
-                uuid.value,
-                'Scene Basket',
-                placeholderMesh.value.uuid,
                 sceneBasket
             ));
         }
@@ -184,5 +193,7 @@ onMounted(async () => {
     if (!props.data) return;
     objectOffsetRef.value.setVector(props.data.recordData.ObjectOffset);
     placeholderOffsetRef.value.setVector(props.data.recordData.PlaceholderOffset);
+    insertAreaOffsetRef.value.setVector(props.data.recordData.InsertAreaOffset);
+    insertAreaSizeRef.value.setVector(props.data.recordData.InsertAreaSize);
 })
 </script>

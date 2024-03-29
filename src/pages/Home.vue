@@ -25,11 +25,23 @@ const create = async () => {
 
     const scene = await sdk.api.SceneController.create({
         name: name.value,
-        description: description.value
+        description: description.value,
+        active: 'false'
     })
     name.value = ''
     description.value = ''
     router.push({ name: 'Editor', params: { sceneUUID: scene.uuid } })
+}
+
+const toggleActivate = async (scene) => {
+    await sdk.api.SceneController.update({
+        uuid: scene.uuid,
+        active: scene.active ? 'false' : true
+    })
+    setTimeout(async () => {
+        await paginatorRef.value.paginator.refresh()
+        toastCtrl.add(`Scene ${scene.active ? 'deactivated' : 'activated'}`, 5000, 'success')
+    }, 100)
 }
 
 const destroy = async (scene) => {
@@ -63,11 +75,7 @@ const destroy = async (scene) => {
                 <input v-model="name" class="border border-gray-300 rounded-md p-1 w-full mb-1"
                     placeholder="Scene Name" />
 
-                <textarea v-model="description" class="border border-gray-300 rounded-md p-1 h-72 w-full"
-                        placeholder="Scene Description" />
                 <div class="flex justify-center justify-between gap-1 mb-6">
-                    
-
                     <button @click="create" class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">
                         Create
                     </button>
@@ -82,14 +90,24 @@ const destroy = async (scene) => {
                 <Paginator ref="paginatorRef" :findAllMethod="sdk.api.SceneController.findAll" :limit="5">
                     <template #default="{ entities }">
                         <div v-for="scene in entities" :key="scene.id">
-                            <div class="flex justify-between items-center rounded-md border border-gray-300 p-3 mb-1">
-                                <div class="capitalize">
-                                    {{ scene.name }}
+                            <div
+                                class="flex justify-between items-center gap-3 rounded-md border border-gray-300 p-3 mb-1">
+                                <div class="flex justify-start items-center gap-3">
+                                    <span class="capitalize">{{ scene.name }}</span>
+                                    <span class="text-xs font-semibold"
+                                        :class="scene.active ? 'text-green-500' : 'text-red-500'">
+                                        {{ scene.active ? 'Active' : 'Inactive' }}
+                                    </span>
                                 </div>
-                                
+
                                 <div class="flex items-center gap-1">
+                                    <button @click="toggleActivate(scene)"
+                                        class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">
+                                        {{ scene.active ? 'Deactivate' : 'Activate' }}
+                                    </button>
+
                                     <router-link :to="{ name: 'Editor', params: { sceneUUID: scene.uuid } }"
-                                    class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Edit</router-link>
+                                        class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Edit</router-link>
 
                                     <button @click="destroy(scene)"
                                         class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Delete</button>
