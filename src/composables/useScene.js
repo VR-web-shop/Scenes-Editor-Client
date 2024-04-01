@@ -1,18 +1,11 @@
 import { useSceneSDK } from "./useScenesSDK.js";
+import { useEditorEntity } from "./useEditorEntity.js";
 
-import LoadMaterial from "../editor/plugins/cache/commands/LoadMaterial.js";
-import LoadTexture from "../editor/plugins/cache/commands/LoadTexture.js";
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
-
-import CreateBasket from "../editor/plugins/object/commands/CreateBasket.js";
-import CreateCheckout from "../editor/plugins/object/commands/CreateCheckout.js";
-import CreateLight from "../editor/plugins/object/commands/CreateLight.js";
-import CreateObject from "../editor/plugins/object/commands/CreateObject.js";
-import SetSceneColor from "../editor/src/view/commands/SetSceneColor.js";
-
 import ReadObjects from "../editor/plugins/object/readers/ReadObjects.js";
 
 const { sdk } = useSceneSDK();
+const editorEntityCtrl = useEditorEntity();
 
 export function useScene() {
     let editor;
@@ -22,26 +15,19 @@ export function useScene() {
         return this;
     }
 
-    async function loadFakeHand() {
-        const url = 'meshes/fake-hand.glb';
-        await editor.invoke(new LoadMesh('FAKE_HAND', url, []));
-    }
+    async function loadEditorMeshes() {
+        const fakeHandUrl = 'meshes/fake-hand.glb';
+        const fakeCameraUrl = 'meshes/fake-camera.glb';
+        const fakeCharacterUrl = 'meshes/fake-character.glb';
 
-    async function loadFakeCamera() {
-        const url = 'meshes/fake-camera.glb';
-        await editor.invoke(new LoadMesh('FAKE_CAMERA', url, []));
-    }
-
-    async function loadFakeCharacter() {
-        const url = 'meshes/fake-character.glb';
-        await editor.invoke(new LoadMesh('FAKE_CHARACTER', url, []));
+        await editor.invoke(new LoadMesh('FAKE_HAND', fakeHandUrl, []));
+        await editor.invoke(new LoadMesh('FAKE_CAMERA', fakeCameraUrl, []));
+        await editor.invoke(new LoadMesh('FAKE_CHARACTER', fakeCharacterUrl, []));
     }
 
     async function loadScene(sceneUUID) {
         if (!editor) throw new Error('Editor not set');
-        await loadFakeHand();
-        await loadFakeCamera();
-        await loadFakeCharacter();
+        await loadEditorMeshes();
 
         const { rows } = await sdk.api.SceneController.findAll({
             limit: 100, where: { uuid: sceneUUID }, include: [
@@ -69,136 +55,54 @@ export function useScene() {
             SceneCamera, SceneProducts, SceneCharacter
         } = scene;
 
-        await editor.invoke(new SetSceneColor(SceneBackground.hex));
+        await editorEntityCtrl.updateSceneBackground(SceneBackground);
 
         if (SceneBasket.Object) {
-            await editor.invoke(new CreateBasket(
-                'Basket',
-                'Scene Basket',
-                SceneBasket.uuid,
-                SceneBasket.Object.uuid,
-                SceneBasket.Position,
-                SceneBasket.Rotation,
-                SceneBasket.Scale,
-                SceneBasket
-            ));
-        }      
+            await editorEntityCtrl.createBasket(SceneBasket);
+        }
         
         if (SceneCamera) {
-            await editor.invoke(new CreateObject(
-                'Camera',
-                'Scene Camera',
-                SceneCamera.uuid,
-                "FAKE_CAMERA",
-                SceneCamera.Position,
-                SceneCamera.Rotation,
-                {x: 1, y: 1, z: 1},
-                SceneCamera
-            ));
-        } 
+            await editorEntityCtrl.createCamera(SceneCamera);
+        }
 
         if (SceneCharacter) {
-            await editor.invoke(new CreateObject(
-                'Character',
-                'Scene Character',
-                SceneCharacter.uuid,
-                "FAKE_CHARACTER",
-                SceneCharacter.Position,
-                SceneCharacter.Rotation,
-                {x: 1, y: 1, z: 1},
-                SceneCharacter
-            ));
+            await editorEntityCtrl.createCharacter(SceneCharacter);
         }
 
         for (const checkout of SceneCheckouts) {
-            await editor.invoke(new CreateCheckout(
-                'Checkout',
-                checkout.name,
-                checkout.uuid,
-                checkout.Mesh.uuid,
-                checkout.Position,
-                checkout.Rotation,
-                checkout.Scale,
-                checkout
-            ));
+            await editorEntityCtrl.createCheckout(checkout);
         }
 
         for (const floor of SceneFloors) {
-            await editor.invoke(new CreateObject(
-                'Floor',
-                floor.name,
-                floor.uuid,
-                floor.Mesh.uuid,
-                floor.Position,
-                floor.Rotation,
-                floor.Scale,
-                floor
-            ));
+            await editorEntityCtrl.createFloor(floor);
         }
 
         for (const staticObject of SceneStaticObjects) {
-            await editor.invoke(new CreateObject(
-                'StaticObject',
-                staticObject.name,
-                staticObject.uuid,
-                staticObject.Mesh.uuid,
-                staticObject.Position,
-                staticObject.Rotation,
-                staticObject.Scale,
-                staticObject
-            ));
+            await editorEntityCtrl.createStaticObject(staticObject);
         }
 
-        if (SceneLights.length > 0) {
-            for (const light of SceneLights) {
-                await editor.invoke(new CreateLight(
-                    light.name,
-                    light.uuid,
-                    light.scene_light_type_name,
-                    light.intensity,
-                    light.hexColor,
-                    light.Position,
-                    light.Rotation,
-                    light
-                ));
-            }
+        for (const light of SceneLights) {
+            await editorEntityCtrl.createLight(light);
         }
 
         for (const product of SceneProducts) {
-            if (!product.Mesh) {
-                continue;
-            }
-            await editor.invoke(new CreateObject(
-                'Product',
-                product.Product.name,
-                product.uuid,
-                product.Mesh.uuid,
-                product.Position,
-                product.Rotation,
-                product.Scale,
-                product
-            ));
+            await editorEntityCtrl.createProduct(product);
         }
     }
 
-    async function saveScene(sceneUUID) {
+    async function saveScene() {
         if (!editor) throw new Error('Editor not set');
 
+        const savables = ['Light', 'Product', 'Floor', 'Checkout', 'StaticObject', 'Camera', 'Character'];
         const reader = await editor.newReader(ReadObjects, editor);
         const objects = await reader.read();
         for (let object of objects) {
             const object3D = object.object;
             const { position, rotation, scale } = object3D;
             const { objectType, id, recordData } = object.options;
+            const isSavable = savables.includes(objectType);
 
-            if (objectType === 'Light' ||
-                objectType === 'Product' ||
-                objectType === 'Floor' ||
-                objectType === 'Checkout' ||
-                objectType === 'StaticObject' ||
-                objectType === 'Camera' ||
-                objectType === 'Character') {
-
+            if (isSavable) {
                 if (!recordData.Position || !recordData.Rotation) {
                     console.error(`Position or Rotation not found for with ID ${id} and it cannot be saved.`, recordData);
                     continue;
@@ -207,28 +111,12 @@ export function useScene() {
                 const positionUUID = recordData.Position.uuid;
                 const rotationUUID = recordData.Rotation.uuid;
 
-                await sdk.api.Vector3DController.update({
-                    uuid: positionUUID,
-                    x: position.x,
-                    y: position.y,
-                    z: position.z
-                });
-
-                await sdk.api.Vector3DController.update({
-                    uuid: rotationUUID,
-                    x: rotation.x,
-                    y: rotation.y,
-                    z: rotation.z
-                });
+                await sdk.api.Vector3DController.update({ uuid: positionUUID, x: position.x, y: position.y, z: position.z });
+                await sdk.api.Vector3DController.update({ uuid: rotationUUID, x: rotation.x, y: rotation.y, z: rotation.z });
 
                 if (recordData.Scale) {
                     const scaleUUID = recordData.Scale.uuid;
-                    await sdk.api.Vector3DController.update({
-                        uuid: scaleUUID,
-                        x: scale.x,
-                        y: scale.y,
-                        z: scale.z
-                    });
+                    await sdk.api.Vector3DController.update({ uuid: scaleUUID, x: scale.x, y: scale.y, z: scale.z });
                 }
             }
         }
@@ -239,8 +127,7 @@ export function useScene() {
 
         const { rows, pages } = await sdk.api.MaterialController.findAll({ page, limit: 100, include: [{ model: 'Texture' }] });
         for (const material of rows) {
-            const textureNames = material.Texture.map(texture => texture.uuid);
-            await editor.invoke(new LoadMaterial(material.uuid, material.material_type_name, textureNames));
+            await editorEntityCtrl.createMaterial(material, material.Texture);
         }
 
         if (page < pages) {
@@ -253,7 +140,7 @@ export function useScene() {
 
         const { rows, pages } = await sdk.api.TextureController.findAll({ page, limit: 100 });
         for (const texture of rows) {
-            await editor.invoke(new LoadTexture(texture.uuid, texture.source, texture.texture_type_name));
+            await editorEntityCtrl.createTexture(texture);
         }
 
         if (page < pages) {
@@ -266,8 +153,10 @@ export function useScene() {
 
         const { rows, pages } = await sdk.api.MeshController.findAll({ page, limit: 100, include: [{ model: 'Material' }] });
         for (const mesh of rows) {
-            const submeshes = mesh.Material.map(m => (new LoadMesh.SubMeshConfiguration(m.MeshMaterial.submesh_name, m.uuid)));
-            await editor.invoke(new LoadMesh(mesh.uuid, `${mesh.source}`, submeshes));
+            const submeshes = mesh.Material.map(m => {
+                return { submesh_name: m.MeshMaterial.submesh_name, material: m};
+            })
+            await editorEntityCtrl.createMesh(mesh, submeshes);
         }
 
         if (page < pages) {

@@ -58,6 +58,7 @@ import BasketIcon from '../../Icons/BasketIcon.vue';
 import TagIcon from '../../Icons/TagIcon.vue';
 import CubeIcon from '../../Icons/CubeIcon.vue';
 import CameraIcon from '../../Icons/CameraIcon.vue';
+import PersonIcon from '../../Icons/PersonIcon.vue';
 import EyeIcon from '../../Icons/EyeIcon.vue';
 import PenIcon from '../../Icons/PenIcon.vue';
 import TimesIcon from '../../Icons/TimesIcon.vue';
@@ -80,7 +81,8 @@ const icons = {
     'Product': TagIcon,
     'Basket': BasketIcon,
     'BasketPlaceholder': BasketIcon,
-    'Camera': CameraIcon
+    'Camera': CameraIcon,
+    'Character': PersonIcon
 }
 
 const popups = usePopups();
@@ -113,10 +115,10 @@ async function findAll(params) {
     }
 }
 
-const notEditableTypes = ['Camera'];
+const notEditableTypes = ['Camera', 'Character'];
 const isEditable = (object) => !notEditableTypes.includes(object.options.objectType);
 
-const notDeleteableTypes = ['Basket', 'BasketPlaceholder', 'Product', 'Camera'];
+const notDeleteableTypes = ['Basket', 'BasketPlaceholder', 'Product', 'Camera', 'Character'];
 const isDeleteable = (object) => !notDeleteableTypes.includes(object.options.objectType);
 
 const destroy = async (object) => {
