@@ -115,6 +115,9 @@ export function useEditorEntity() {
     }
 
     async function updateBasket(basket) {
+        if (!basket.Object) return;
+        console.log(basket);
+
         const { uuid, Object, Position, Rotation, Scale } = basket;
         const name = 'Scene Basket';
         await editor.invoke(new UpdateBasket(

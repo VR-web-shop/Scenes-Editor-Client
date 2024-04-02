@@ -37,7 +37,7 @@ export default class UpdateBasket extends UpdateObject {
      */
     async execute() {
         super.execute()
-
+        console.log(this.invoker.options)
         const { plugins, view } = this.invoker.options
         const { objects, caches } = plugins
         const { scene } = view
@@ -73,6 +73,6 @@ export default class UpdateBasket extends UpdateObject {
             this.scale,
             this.recordData
         );
-        await createCommand.execute();
+        await this.invoker.invoke(createCommand)
     }
 }

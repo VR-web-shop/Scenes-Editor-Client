@@ -3,7 +3,6 @@
         :submitMethod="submit" 
         :buttonText="uuid ? 'Update' : 'Create'" 
         :record="{
-            name: { value: name, required: true, type: 'text' },
             object_offset: { value: objectOffset, required: true, type: 'vector3d', placeholder: 'Object Offset (relative to hand)' },
             placeholder_offset: { value: placeholderOffset, required: true, type: 'vector3d', placeholder: 'Placeholder Offset (relative to basket mesh)' },
             pocket_offset: { value: pocketOffset, required: true, type: 'vector3d', placeholder: 'Pocket Offset (relative to VR character)' },
