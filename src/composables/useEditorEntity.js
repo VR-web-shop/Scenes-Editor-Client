@@ -1,9 +1,11 @@
 import { useEditor } from "./useEditor.js";
+import { useProductsSDK } from "./useProductsSDK.js";
 
 import SetSceneColor from "../editor/src/view/commands/SetSceneColor.js";
 
 import CreateObject from "../editor/plugins/object/commands/CreateObject.js";
 import UpdateObject from "../editor/plugins/object/commands/UpdateObject.js";
+import RemoveObject from "../editor/plugins/object/commands/RemoveObject.js";
 
 import CreateLight from "../editor/plugins/object/commands/CreateLight.js";
 import UpdateLight from "../editor/plugins/object/commands/UpdateLight.js";
@@ -14,10 +16,15 @@ import UpdateCheckout from "../editor/plugins/object/commands/UpdateCheckout.js"
 import CreateBasket from "../editor/plugins/object/commands/CreateBasket.js";
 import UpdateBasket from "../editor/plugins/object/commands/UpdateBasket.js";
 
+import CreateSceneProduct from "../editor/plugins/object/commands/CreateSceneProduct.js";
+import UpdateSceneProduct from "../editor/plugins/object/commands/UpdateSceneProduct.js";
+import RemoveSceneProduct from "../editor/plugins/object/commands/RemoveSceneProduct.js";
+
 import LoadTexture from "../editor/plugins/cache/commands/LoadTexture.js";
 import LoadMaterial from "../editor/plugins/cache/commands/LoadMaterial.js";
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
 
+const productsCtrl = useProductsSDK();
 const editor = useEditor();
 const OBJECT_TYPE = {
     STATIC_OBJECT: 'StaticObject',
@@ -33,6 +40,10 @@ const OBJECT_TYPE = {
 
 
 export function useEditorEntity() {
+
+    async function removeObject(uuid) {
+        await editor.invoke(new RemoveObject(uuid));
+    }
 
     async function createStaticObject(staticObject) {
         const { name, uuid, Mesh, Position, Rotation, Scale } = staticObject;
@@ -74,20 +85,24 @@ export function useEditorEntity() {
 
     async function createProduct(sceneProduct) {
         if (!sceneProduct.Mesh) return;
-
+        const valuta = productsCtrl.valuta.value;
         const { uuid, Mesh, Product, Position, Rotation, Scale } = sceneProduct;
-        await editor.invoke(new CreateObject(
-            OBJECT_TYPE.PRODUCT, Product.name, uuid, Mesh.uuid, Position, Rotation, Scale, sceneProduct
+        await editor.invoke(new CreateSceneProduct(
+            OBJECT_TYPE.PRODUCT, Product.name, uuid, Mesh.uuid, Position, Rotation, Scale, sceneProduct, valuta
         ));
     }
 
     async function updateProduct(sceneProduct) {
         if (!sceneProduct.Mesh) return;
-
-        const { uuid, Mesh, Product } = sceneProduct;
-        await editor.invoke(new UpdateObject(
-            uuid, Product.name, Mesh.uuid, sceneProduct
+        const valuta = productsCtrl.valuta.value;
+        const { uuid, Mesh, Product, Position, Rotation, Scale } = sceneProduct;
+        await editor.invoke(new UpdateSceneProduct(
+            OBJECT_TYPE.PRODUCT, Product.name, uuid, Mesh.uuid, Position, Rotation, Scale, sceneProduct, valuta
         ));
+    }
+
+    async function removeProduct(uuid) {
+        await editor.invoke(new RemoveSceneProduct(uuid));
     }
 
     async function createCheckout(checkout) {
@@ -98,9 +113,9 @@ export function useEditorEntity() {
     }
 
     async function updateCheckout(checkout) {
-        const { name, uuid, Mesh } = checkout;
+        const { name, uuid, Mesh, Position, Rotation, Scale } = checkout;
         await editor.invoke(new UpdateCheckout(
-            uuid, name, Mesh.uuid, checkout
+            OBJECT_TYPE.CHECKOUT, name, uuid, Mesh.uuid, Position, Rotation, Scale, checkout
         ));
     }
 
@@ -185,6 +200,7 @@ export function useEditorEntity() {
         updateCheckout,
         createBasket,
         updateBasket,
-        updateSceneBackground
+        updateSceneBackground,
+        removeObject
     }
 }

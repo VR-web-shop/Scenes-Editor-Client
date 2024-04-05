@@ -28,7 +28,14 @@ export const useNotifications = () => {
                 state_name: 'MeshRequired'
             },
             include: [
-                { model: 'Product' }
+                { model: 'Product' },
+                { model: 'Mesh' },
+                { model: 'Position' },
+                { model: 'Rotation' },
+                { model: 'Scale' },
+                { model: 'UIOffsetPosition' },
+                { model: 'UIOffsetRotation' },
+                { model: 'UIScale' }
             ]
         })
 

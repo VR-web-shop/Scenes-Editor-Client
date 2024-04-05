@@ -11,9 +11,11 @@
   "dependencies": {
     "@vr-web-shop/scenes": "1.0.44",
     "@vr-web-shop/auth": "1.0.38",
+    "@vr-web-shop/products": "1.0.13",
     "three": "^0.161.0",
     "vue": "^3.3.11",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "websocket": "^1.0.34"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",

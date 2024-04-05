@@ -57,11 +57,11 @@ export default class CreateBasket extends CreateObject {
 
             placeholder.position.copy(object.object.position.clone()
                 .add(new THREE.Vector3(
-                    PlaceholderOffset.x, 
-                    PlaceholderOffset.y, 
+                    PlaceholderOffset.x,
+                    PlaceholderOffset.y,
                     PlaceholderOffset.z
                 )));
-            scene.add(placeholder);
+            object.object.add(placeholder);
             object.options.placeholder = placeholder;
         }
 
@@ -72,13 +72,15 @@ export default class CreateBasket extends CreateObject {
                 throw new Error('Unable to clone pocket')
             }
 
-            pocket.position.copy(object.object.position.clone()
-                .add(new THREE.Vector3(
-                    PocketOffset.x,
-                    PocketOffset.y,
-                    PocketOffset.z
-                )));
-            scene.add(pocket);
+            const character = objects.findByType('Character');
+            const characterObject = character.object;
+            const headOffset = 0.5; // VR Vector3d.zero = the position of the head
+            pocket.position.copy(new THREE.Vector3(
+                PocketOffset.x,
+                PocketOffset.y + headOffset,
+                PocketOffset.z
+            ));
+            characterObject.add(pocket);
             object.options.pocket = pocket;
         }
 
@@ -88,27 +90,25 @@ export default class CreateBasket extends CreateObject {
         }
 
         // Create fake hand
-        fakeHand.position.copy(object.object.position.clone()
-            .sub(new THREE.Vector3(
-                ObjectOffset.x, 
-                ObjectOffset.y, 
-                ObjectOffset.z
-            )));
-        scene.add(fakeHand);
+        fakeHand.position.copy(new THREE.Vector3(
+            ObjectOffset.x,
+            ObjectOffset.y,
+            ObjectOffset.z
+        ));
+        object.object.add(fakeHand);
         object.options.fakeHand = fakeHand;
 
         // Create insert area
-        const insertAreaPosition = object.object.position.clone()
-            .add(new THREE.Vector3(
-                InsertAreaOffset.x, 
-                InsertAreaOffset.y, 
-                InsertAreaOffset.z
-            ));
+        const insertAreaPosition = new THREE.Vector3(
+            InsertAreaOffset.x,
+            InsertAreaOffset.y,
+            InsertAreaOffset.z
+        );
         const cubeGeometry = new THREE.BoxGeometry(InsertAreaSize.x, InsertAreaSize.y, InsertAreaSize.z);
         const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.copy(insertAreaPosition);
-        scene.add(cube);
+        object.object.add(cube);
         object.options.insertArea = cube;
     }
 }

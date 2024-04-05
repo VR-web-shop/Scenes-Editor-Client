@@ -1,11 +1,17 @@
 import { useSceneSDK } from "./useScenesSDK.js";
+import { useProductsSDK } from "./useProductsSDK.js";
 import { useEditorEntity } from "./useEditorEntity.js";
+import { useWebsocket } from "./useWebsocket.js";
+import { useNotifications } from "./useNotifications.js";
 
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
 import ReadObjects from "../editor/plugins/object/readers/ReadObjects.js";
 
 const { sdk } = useSceneSDK();
+const productsCtrl = useProductsSDK();
 const editorEntityCtrl = useEditorEntity();
+const notificationCtrl = useNotifications();
+const ws = useWebsocket();
 
 export function useScene() {
     let editor;
@@ -27,6 +33,7 @@ export function useScene() {
 
     async function loadScene(sceneUUID) {
         if (!editor) throw new Error('Editor not set');
+        await productsCtrl.start();
         await loadEditorMeshes();
 
         const { rows } = await sdk.api.SceneController.findAll({
@@ -36,8 +43,8 @@ export function useScene() {
                 { model: 'SceneStaticObjects', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
                 { model: 'SceneFloors', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
                 { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder', 'Pocket', 'ObjectOffset', 'PlaceholderOffset', 'PocketOffset', 'InsertAreaOffset', 'InsertAreaSize'] },
-                { model: 'SceneCheckouts', include: ['Position', 'Rotation', 'Scale', 'SurfaceOffset', 'SurfaceSize', 'UIOffset', 'UIRotation', 'Mesh'] },
-                { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh', 'Product'] },
+                { model: 'SceneCheckouts', include: ['Position', 'Rotation', 'Scale', 'SurfaceOffset', 'SurfaceSize', 'UIOffsetPosition', 'UIOffsetRotation', 'UIScale', 'Mesh'] },
+                { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh', 'Product', 'UIOffsetPosition', 'UIOffsetRotation', 'UIScale'] },
                 { model: 'SceneBackground' },
                 { model: 'SceneCharacter', include: ['Position', 'Rotation'] }
 
@@ -56,10 +63,6 @@ export function useScene() {
         } = scene;
 
         await editorEntityCtrl.updateSceneBackground(SceneBackground);
-
-        if (SceneBasket.Object) {
-            await editorEntityCtrl.createBasket(SceneBasket);
-        }
         
         if (SceneCamera) {
             await editorEntityCtrl.createCamera(SceneCamera);
@@ -67,6 +70,11 @@ export function useScene() {
 
         if (SceneCharacter) {
             await editorEntityCtrl.createCharacter(SceneCharacter);
+        }
+
+        if (SceneBasket.Object) {
+            // Note must be the character object
+            await editorEntityCtrl.createBasket(SceneBasket);
         }
 
         for (const checkout of SceneCheckouts) {
@@ -88,6 +96,18 @@ export function useScene() {
         for (const product of SceneProducts) {
             await editorEntityCtrl.createProduct(product);
         }
+
+        ws.addEventListener(ws.EVENTS.SCENES_NEW_SCENE_PRODUCT, async (event) => {
+            const { payload } = event;
+            await editorEntityCtrl.createProduct(payload);
+            await notificationCtrl.sync();
+        });
+
+        ws.addEventListener(ws.EVENTS.SCENES_DELETE_SCENE_PRODUCT, async (event) => {
+            const { payload } = event;
+            await editorEntityCtrl.removeProduct(payload.uuid);
+            await notificationCtrl.sync();
+        });
     }
 
     async function saveScene() {

@@ -1,13 +1,13 @@
-import CreateBasket from './CreateBasket.js'
-import RemoveBasket from './RemoveBasket.js'
 import UpdateObject from './UpdateObject.js'
+import RemoveSceneProduct from './RemoveSceneProduct.js'
+import CreateSceneProduct from './CreateSceneProduct.js'
 
 /**
  * @extends Command
  * @class
- * @classdesc UpdateBasket update basket object
+ * @classdesc UpdateSceneProduct update scene product object
  */
-export default class UpdateBasket extends UpdateObject {
+export default class UpdateSceneProduct extends UpdateObject {
 
     /**
      * @constructor
@@ -20,15 +20,17 @@ export default class UpdateBasket extends UpdateObject {
      * @param {object} rotation the rotation of the object (optional)
      * @param {object} scale the scale of the object (optional)
      * @param {object} recordData the record data of the object (optional)
+     * @param {object} valuta the valuta of the object (optional)
      * @throws {Error} if meshName is not a string
      */
-    constructor(objectType, labelName, id, meshName, position, rotation, scale, recordData) {
+    constructor(objectType, labelName, id, meshName, position, rotation, scale, recordData, valuta={short:'DKK'}) {
         super(id, labelName, meshName, recordData)
 
         this.objectType = objectType
         this.position = position
         this.rotation = rotation
         this.scale = scale
+        this.valuta = valuta
     }
 
     /**
@@ -38,26 +40,15 @@ export default class UpdateBasket extends UpdateObject {
      */
     async execute() {
         super.execute()
-        console.log(this.invoker.options)
-        const { plugins, view } = this.invoker.options
-        const { objects, caches } = plugins
-        const { scene } = view
 
-        if (caches == null) {
-            throw new Error('Dependency Error: Unable to find caches plugin')
-        }
-
-        if (objects == null) {
+        const { plugins } = this.invoker.options
+        const { objects } = plugins
+        if (objects === null) {
             throw new Error('Dependency Error: Unable to find objects plugin')
         }
 
-        const meshCache = caches.find('meshes')
-        if (meshCache === null) {
-            throw new Error('Cache Error: Unable to find mesh cache')
-        }
-
-        await this.invoker.invoke(new RemoveBasket(this.id))
-        await this.invoker.invoke(new CreateBasket(
+        await this.invoker.invoke(new RemoveSceneProduct(this.id))
+        await this.invoker.invoke(new CreateSceneProduct(
             this.objectType,
             this.labelName,
             this.id,
@@ -65,7 +56,8 @@ export default class UpdateBasket extends UpdateObject {
             this.position,
             this.rotation,
             this.scale,
-            this.recordData
+            this.recordData,
+            this.valuta
         ))
     }
 }

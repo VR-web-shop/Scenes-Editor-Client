@@ -3,9 +3,9 @@ import { Command } from '../../../editor.js'
 /**
  * @extends Command
  * @class
- * @classdesc RemoveCheckout remove checkout object
+ * @classdesc RemoveSceneProduct remove scene product object
  */
-export default class RemoveCheckout extends Command {
+export default class RemoveSceneProduct extends Command {
 
     /**
      * @constructor
@@ -29,17 +29,15 @@ export default class RemoveCheckout extends Command {
      * @returns {void}
      */
     async execute() {
-        const { plugins, view } = this.invoker.options
+        const { plugins } = this.invoker.options
         const { objects } = plugins
-        const { scene } = view
         if (objects === null) {
             throw new Error('Dependency Error: Unable to find objects plugin')
         }
 
         const object = objects.find(this.id);
-        const { surface, ui } = object.options;
+        const { ui } = object.options;
 
-        object.object.remove(surface);
         object.object.remove(ui);
         objects.remove(this.id)
     }

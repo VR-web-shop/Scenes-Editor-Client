@@ -43,24 +43,24 @@ export default class CreateCheckout extends CreateObject {
         const object = objects.find(this.id);
         
         const { SurfaceOffset, SurfaceSize } = object.options.recordData;
-        const surfacePosition = object.object.position.clone()
-            .add(new THREE.Vector3(SurfaceOffset.x, SurfaceOffset.y, SurfaceOffset.z));
+        const surfacePosition = new THREE.Vector3(SurfaceOffset.x, SurfaceOffset.y, SurfaceOffset.z);
         const cubeGeometry = new THREE.BoxGeometry(SurfaceSize.x, SurfaceSize.y, SurfaceSize.z);
         const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.copy(surfacePosition);
-        scene.add(cube);
+        object.object.add(cube);
 
-        const { UIOffset, UIRotation } = object.options.recordData;
-        const uiPosition = object.object.position.clone()
-            .add(new THREE.Vector3(UIOffset.x, UIOffset.y, UIOffset.z));
-        const uiRotation = new THREE.Euler(UIRotation.x, UIRotation.y, UIRotation.z);
+        const { UIOffsetPosition, UIOffsetRotation, UIScale } = object.options.recordData;
+        const uiPosition = new THREE.Vector3(UIOffsetPosition.x, UIOffsetPosition.y, UIOffsetPosition.z);
+        const uiRotation = new THREE.Euler(UIOffsetRotation.x, UIOffsetRotation.y, UIOffsetRotation.z);
+        const uiScale = new THREE.Vector3(UIScale.x, UIScale.y, UIScale.z);
         const planeGeometry = new THREE.PlaneGeometry(2, 1);
         const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.position.copy(uiPosition);
         plane.rotation.copy(uiRotation);
-        scene.add(plane);
+        plane.scale.copy(uiScale);
+        object.object.add(plane);
 
         object.options.surface = cube;
         object.options.ui = plane;

@@ -107,6 +107,10 @@ export default class Objects extends BasePlugin {
         this.objects[index] = object
     }
 
+    findByType(objectType) {
+        return this.objects.find(({ options }) => options.objectType === objectType)
+    }
+
     findAllByType(objectType) {
         return this.objects.filter(({ options }) => options.objectType === objectType)
     }
