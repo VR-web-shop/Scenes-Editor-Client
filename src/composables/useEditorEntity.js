@@ -142,7 +142,7 @@ export function useEditorEntity() {
 
     async function createMesh(mesh, submeshConfigurations=[]) {
         const submeshes = submeshConfigurations.map((submesh) => {
-            return new LoadMesh.SubMeshConfiguration(submesh.submesh_name, submesh.material.name);
+            return new LoadMesh.SubMeshConfiguration(submesh.submesh_name, submesh.material.uuid);
         });
         await editor.invoke(new LoadMesh(mesh.uuid, mesh.source, submeshes));
     }

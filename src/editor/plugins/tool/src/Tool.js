@@ -63,11 +63,7 @@ export default class Tool {
      * @returns {void}
      */
     onSelected(object) {
-        if (selected && selected !== object && !this.isReadyToDeselect()) {
-            return
-        }
-        
-        selected = object
+        selected = object.selected
     }
 
     /**
@@ -77,10 +73,6 @@ export default class Tool {
      * @returns {void}
      */
     onDeselected(object) {
-        if (!this.isReadyToDeselect()) {
-            return
-        }
-
         selected = null
     }
 
@@ -122,14 +114,5 @@ export default class Tool {
      * @abstract
      */
     onScroll(object) {
-    }
-
-    /**
-     * Determine if the tool is ready to deselect
-     * 
-     * @returns {boolean}
-     */
-    isReadyToDeselect() {
-        return true
     }
 }

@@ -11,7 +11,7 @@ const mouseCoords = new THREE.Vector2()
  * @param {Array} objects
  * @returns {Object|null}
  */
-const getIntersect = (event, camera, objects) => {
+const getIntersect = (event, camera, objects, selected) => {
     mouseCoords.x = (event.event.clientX / window.innerWidth) * 2 - 1
     mouseCoords.y = -(event.event.clientY / window.innerHeight) * 2 + 1
 

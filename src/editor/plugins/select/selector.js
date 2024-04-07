@@ -91,18 +91,30 @@ export default class Selector extends BasePlugin {
     }
 
     onPointerUp = (object) => {
+    }
+
+    removeSelected = (event) => {
         if (this.selected) {
-            this.events.dispatchEvent('deselect', this.selected)
+            this.events.dispatchEvent('deselect', {selected: this.selected, pointerDownEvent: event})
             this.selected = null
         }
     }
 
-    onPointerDown = (object) => {
+    onPointerDown = (event) => {
         const object3Ds = this.objects.getObject3Ds()
-        const intersect = Util.getIntersect(object, this.camera, object3Ds)
+        const intersect = Util.getIntersect(event, this.camera, object3Ds, this.selected)
         if (intersect && intersect !== this.selected) {
             this.selected = Util.findParentBeforeScene(intersect, this.scene)
-            this.events.dispatchEvent('select', this.selected)
+            this.events.dispatchEvent('select', {selected: this.selected, pointerDownEvent: event})
+
+            const index = object3Ds.indexOf(this.selected)
+            // Move the selected object to the end of the array
+            if (index > -1) {
+                object3Ds.splice(index, 1)
+                object3Ds.push(this.selected)
+            }
+        } else if (this.selected) {
+            this.removeSelected(event)
         }
     }
 

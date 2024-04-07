@@ -8,7 +8,6 @@ const normal = new THREE.Vector3()
 const calculateMouseCoords = (event) => {
     mouseCoords.x = (event.clientX / window.innerWidth) * 2 - 1
     mouseCoords.y = -(event.clientY / window.innerHeight) * 2 + 1
-
     return mouseCoords
 }
 

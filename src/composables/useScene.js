@@ -128,13 +128,17 @@ export function useScene() {
                     continue;
                 }
 
-                const positionUUID = recordData.Position.uuid;
-                const rotationUUID = recordData.Rotation.uuid;
+                if (recordData.Position.x !== position.x || recordData.Position.y !== position.y || recordData.Position.z !== position.z) {
+                    const positionUUID = recordData.Position.uuid;
+                    await sdk.api.Vector3DController.update({ uuid: positionUUID, x: position.x, y: position.y, z: position.z });
+                }
 
-                await sdk.api.Vector3DController.update({ uuid: positionUUID, x: position.x, y: position.y, z: position.z });
-                await sdk.api.Vector3DController.update({ uuid: rotationUUID, x: rotation.x, y: rotation.y, z: rotation.z });
+                if (recordData.Rotation.x !== rotation.x || recordData.Rotation.y !== rotation.y || recordData.Rotation.z !== rotation.z) {
+                    const rotationUUID = recordData.Rotation.uuid;
+                    await sdk.api.Vector3DController.update({ uuid: rotationUUID, x: rotation.x, y: rotation.y, z: rotation.z });
+                }
 
-                if (recordData.Scale) {
+                if (recordData.Scale && (recordData.Scale.x !== scale.x || recordData.Scale.y !== scale.y || recordData.Scale.z !== scale.z)) {
                     const scaleUUID = recordData.Scale.uuid;
                     await sdk.api.Vector3DController.update({ uuid: scaleUUID, x: scale.x, y: scale.y, z: scale.z });
                 }
