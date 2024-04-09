@@ -92,7 +92,7 @@ export default class CreateBasket extends CreateObject {
         // Create fake hand
         fakeHand.position.copy(new THREE.Vector3(
             ObjectOffset.x,
-            ObjectOffset.y,
+            -ObjectOffset.y,
             ObjectOffset.z
         ));
         object.object.add(fakeHand);
