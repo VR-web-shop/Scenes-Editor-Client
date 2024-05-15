@@ -1,0 +1,7 @@
+services:
+  sceneseditorclient:
+    image: sceneseditorclient:v1.0
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "5175:5175"

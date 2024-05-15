@@ -40,8 +40,8 @@ import { useToast } from '../composables/useToast.js';
 import { useAuthSDK } from '../composables/useAuthSDK.js';
 
 const emits = defineEmits(['complete']);
-const email = ref('admin@example.com');
-const password = ref('12345678');
+const email = ref('userAdmin@example.com');
+const password = ref('126345678');
 const showIntro = ref(null);
 const introMsg = ref('')
 const introShowTime = 6000;
@@ -60,15 +60,11 @@ async function submit() {
         return;
     }
 
-    const { api, requests } = sdk
-    const { authentication } = api
-    const req = new requests.AuthRequest.CreateRequest({
-        email: email.value,
-        password: password.value,
-    })
-
     try {
-        await authentication.login(req)
+        await sdk.api.authentication.login({
+            email: email.value,
+            password: password.value,
+        })
         introMsg.value = await msgOfTheDay();
         showIntro.value = true;
         setTimeout(() => {

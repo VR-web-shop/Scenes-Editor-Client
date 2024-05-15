@@ -8,14 +8,15 @@ const valuta = ref(null)
 export function useProductsSDK() {
 
     async function start() {
-        const { rows } = await sdk.api.ValutaSettingController.findAll({
+        /*const { rows } = await sdk.api.ValutaSettingController.findAll({
             limit: 10,
             where: {
                 active: 1
             }
-        })
+        })*/
 
-        valuta.value = rows[0]
+        valuta.value = { name: 'USD', short: 'USD', symbol: '$' } 
+            //rows[0]
     }
     
     return {
