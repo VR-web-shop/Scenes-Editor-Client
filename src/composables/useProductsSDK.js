@@ -1,7 +1,7 @@
 import ProductsSDK from '@vr-web-shop/products'
 import { ref } from 'vue'
 
-const SERVER_URL = 'http://localhost:3002'
+const SERVER_URL = import.meta.env.VITE_PRODUCTS_SERVER_URL
 const sdk = new ProductsSDK(SERVER_URL)
 const valuta = ref(null)
 
