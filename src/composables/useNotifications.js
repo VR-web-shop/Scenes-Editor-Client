@@ -21,7 +21,7 @@ export const useNotifications = () => {
         
         const sceneUUID = router.currentRoute.value.params.sceneUUID;
         const { sdk } = useSceneSDK();
-        const { rows: sceneProducts } = await sdk.api.SceneProductController.findAll({ 
+        const { rows: sceneProducts } = await sdk.SceneProduct.findAll({ 
             limit: 1000, 
             where: { 
                 scene_uuid: sceneUUID,
@@ -51,7 +51,7 @@ export const useNotifications = () => {
             );
         }
 
-        const { rows: sceneBaskets } = await sdk.api.SceneBasketController.findAll({ 
+        const { rows: sceneBaskets } = await sdk.SceneBasket.findAll({ 
             limit: 1000, 
             where: { 
                 scene_uuid: sceneUUID,

@@ -13,6 +13,20 @@ const editorEntityCtrl = useEditorEntity();
 const notificationCtrl = useNotifications();
 const ws = useWebsocket();
 
+const getVectors = async (entities, attributes) => {
+    const vector3dIds = entities.map(e => {
+        return attributes.map(attribute => e[attribute]);
+    }).flat();
+    const { rows: vectors } = await sdk.Vector3D.batchByUUID(vector3dIds);
+    entities.forEach((element, index) => {
+        for (const attribute of attributes) {
+            const vector_client_side_uuid = element[attribute];
+            const vector = vectors.find(v => v.client_side_uuid === vector_client_side_uuid);
+            entities[index][attribute] = { ...vector, vector_client_side_uuid };
+        }
+    });
+};
+
 export function useScene() {
     let editor;
 
@@ -31,69 +45,87 @@ export function useScene() {
         await editor.invoke(new LoadMesh('FAKE_CHARACTER', fakeCharacterUrl, []));
     }
 
-    async function loadScene(sceneUUID) {
+    async function loadScene() {
         if (!editor) throw new Error('Editor not set');
         await productsCtrl.start();
         await loadEditorMeshes();
 
-        const { rows } = await sdk.api.SceneController.findAll({
-            limit: 100, where: { uuid: sceneUUID }, include: [
-                { model: 'SceneCamera', include: ['Position', 'Rotation'] },
-                { model: 'SceneLights', include: ['Position', 'Rotation'] },
-                { model: 'SceneStaticObjects', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
-                { model: 'SceneFloors', include: ['Position', 'Rotation', 'Scale', 'Mesh'] },
-                { model: 'SceneBasket', include: ['Position', 'Rotation', 'Scale', 'Object', 'Placeholder', 'Pocket', 'ObjectOffset', 'PlaceholderOffset', 'PocketOffset', 'InsertAreaOffset', 'InsertAreaSize'] },
-                { model: 'SceneCheckouts', include: ['Position', 'Rotation', 'Scale', 'SurfaceOffset', 'SurfaceSize', 'UIOffsetPosition', 'UIOffsetRotation', 'UIScale', 'Mesh'] },
-                { model: 'SceneProducts', include: ['Position', 'Rotation', 'Scale', 'Mesh', 'Product', 'UIOffsetPosition', 'UIOffsetRotation', 'UIScale'] },
-                { model: 'SceneBackground' },
-                { model: 'SceneCharacter', include: ['Position', 'Rotation'] }
-
-            ]
-        });
-
-        if (rows.length === 0) {
-            throw new Error(`Scene with UUID ${sceneUUID} not found`);
+        const { rows } = await sdk.Scene.active();
+        
+        if (rows.length == 0) {
+            throw new Error(`No active scene found`);
         }
 
         const scene = rows[0];
-        const {
-            SceneBackground, SceneBasket, SceneCheckouts,
-            SceneFloors, SceneStaticObjects, SceneLights,
-            SceneCamera, SceneProducts, SceneCharacter
-        } = scene;
 
-        await editorEntityCtrl.updateSceneBackground(SceneBackground);
+        await getVectors([scene.scene_character], [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+        ]);
+        await getVectors([scene.scene_camera], [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+        ]);
+        await getVectors([scene.scene_basket], [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+            'scale_client_side_uuid',
+            'object_offset_client_side_uuid',
+            'insert_area_size_client_side_uuid',
+            'insert_area_offset_client_side_uuid',
+        ]);
         
-        if (SceneCamera) {
-            await editorEntityCtrl.createCamera(SceneCamera);
-        }
+        await editorEntityCtrl.updateSceneBackground(scene.scene_background);
+        await editorEntityCtrl.createCamera(scene.scene_camera);
+        await editorEntityCtrl.createCharacter(scene.scene_character);
+        await editorEntityCtrl.createBasket(scene.scene_basket);
 
-        if (SceneCharacter) {
-            await editorEntityCtrl.createCharacter(SceneCharacter);
-        }
-
-        if (SceneBasket.Object) {
-            // Note must be the character object
-            await editorEntityCtrl.createBasket(SceneBasket);
-        }
-
-        for (const checkout of SceneCheckouts) {
+        await getVectors(scene.scene_checkouts, [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+            'scale_client_side_uuid',
+            'surface_offset_client_side_uuid',
+            'surface_size_client_side_uuid',
+            'ui_offset_position_client_side_uuid',
+            'ui_offset_rotation_client_side_uuid',
+            'ui_scale_client_side_uuid'
+        ]);
+        for (const checkout of scene.scene_checkouts) {
             await editorEntityCtrl.createCheckout(checkout);
         }
 
-        for (const floor of SceneFloors) {
+        await getVectors(scene.scene_floors, [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+            'scale_client_side_uuid',
+        ]);
+        for (const floor of scene.scene_floors) {
             await editorEntityCtrl.createFloor(floor);
         }
 
-        for (const staticObject of SceneStaticObjects) {
+        await getVectors(scene.scene_static_objects, [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+            'scale_client_side_uuid',
+        ]);
+        for (const staticObject of scene.scene_static_objects) {
             await editorEntityCtrl.createStaticObject(staticObject);
         }
 
-        for (const light of SceneLights) {
+        await getVectors(scene.scene_lights, [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+        ]);
+        for (const light of scene.scene_lights) {
             await editorEntityCtrl.createLight(light);
         }
 
-        for (const product of SceneProducts) {
+        await getVectors(scene.scene_products, [
+            'position_client_side_uuid',
+            'rotation_client_side_uuid',
+            'scale_client_side_uuid',
+        ]);
+        for (const product of scene.scene_products) {
             await editorEntityCtrl.createProduct(product);
         }
 
@@ -130,17 +162,17 @@ export function useScene() {
 
                 if (recordData.Position.x !== position.x || recordData.Position.y !== position.y || recordData.Position.z !== position.z) {
                     const positionUUID = recordData.Position.uuid;
-                    await sdk.api.Vector3DController.update({ uuid: positionUUID, x: position.x, y: position.y, z: position.z });
+                    await sdk.Vector3d.update({ uuid: positionUUID, x: position.x, y: position.y, z: position.z });
                 }
 
                 if (recordData.Rotation.x !== rotation.x || recordData.Rotation.y !== rotation.y || recordData.Rotation.z !== rotation.z) {
                     const rotationUUID = recordData.Rotation.uuid;
-                    await sdk.api.Vector3DController.update({ uuid: rotationUUID, x: rotation.x, y: rotation.y, z: rotation.z });
+                    await sdk.Vector3d.update({ uuid: rotationUUID, x: rotation.x, y: rotation.y, z: rotation.z });
                 }
 
                 if (recordData.Scale && (recordData.Scale.x !== scale.x || recordData.Scale.y !== scale.y || recordData.Scale.z !== scale.z)) {
                     const scaleUUID = recordData.Scale.uuid;
-                    await sdk.api.Vector3DController.update({ uuid: scaleUUID, x: scale.x, y: scale.y, z: scale.z });
+                    await sdk.Vector3d.update({ uuid: scaleUUID, x: scale.x, y: scale.y, z: scale.z });
                 }
             }
         }
@@ -149,7 +181,9 @@ export function useScene() {
     async function loadAllMaterials(page = 1) {
         if (!editor) throw new Error('Editor not set');
 
-        const { rows, pages } = await sdk.api.MaterialController.findAll({ page, limit: 100, include: [{ model: 'Texture' }] });
+        const { rows, pages } = await sdk.Material.findAll(page, 100, { fields: [
+            {key: 'include', value: 'materialtexture:material_client_side_uuid<client_side_uuid'}
+        ] });
         for (const material of rows) {
             await editorEntityCtrl.createMaterial(material, material.Texture);
         }
@@ -162,9 +196,9 @@ export function useScene() {
     async function loadAllTextures(page = 1) {
         if (!editor) throw new Error('Editor not set');
 
-        const { rows, pages } = await sdk.api.TextureController.findAll({ page, limit: 100 });
+        const { rows, pages } = await sdk.Texture.findAll(page, 100);
         for (const texture of rows) {
-            await editorEntityCtrl.createTexture(texture);
+            //await editorEntityCtrl.createTexture(texture);
         }
 
         if (page < pages) {
@@ -175,11 +209,20 @@ export function useScene() {
     async function loadAllMeshes(page = 1) {
         if (!editor) throw new Error('Editor not set');
 
-        const { rows, pages } = await sdk.api.MeshController.findAll({ page, limit: 100, include: [{ model: 'Material' }] });
+        const { rows, pages } = await sdk.Mesh.findAll( 
+            page, 100, { fields: [
+                {key: 'include', value: 'material.MeshMaterial'},
+            ]}
+        );
+
         for (const mesh of rows) {
-            const submeshes = mesh.Material.map(m => {
-                return { submesh_name: m.MeshMaterial.submesh_name, material: m};
-            })
+            const submeshes = mesh.mesh_materials?.map(mesh_material => {
+                return { 
+                    submesh_name: mesh_material.submesh_name, 
+                    material: { client_side_uuid: mesh_material.material_client_side_uuid }
+                };
+            }) || [];
+
             await editorEntityCtrl.createMesh(mesh, submeshes);
         }
 

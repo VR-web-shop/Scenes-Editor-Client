@@ -42,18 +42,26 @@ export default class CreateCheckout extends CreateObject {
 
         const object = objects.find(this.id);
         
-        const { SurfaceOffset, SurfaceSize } = object.options.recordData;
-        const surfacePosition = new THREE.Vector3(SurfaceOffset.x, SurfaceOffset.y, SurfaceOffset.z);
-        const cubeGeometry = new THREE.BoxGeometry(SurfaceSize.x, SurfaceSize.y, SurfaceSize.z);
+        const { 
+            surface_offset_client_side_uuid: soV,
+            surface_size_client_side_uuid: ssV
+        } = object.options.recordData;
+
+        const surfacePosition = new THREE.Vector3(soV.x, soV.y, soV.z);
+        const cubeGeometry = new THREE.BoxGeometry(ssV.x, ssV.y, ssV.z);
         const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.copy(surfacePosition);
         object.object.add(cube);
 
-        const { UIOffsetPosition, UIOffsetRotation, UIScale } = object.options.recordData;
-        const uiPosition = new THREE.Vector3(UIOffsetPosition.x, UIOffsetPosition.y, UIOffsetPosition.z);
-        const uiRotation = new THREE.Euler(UIOffsetRotation.x, UIOffsetRotation.y, UIOffsetRotation.z);
-        const uiScale = new THREE.Vector3(UIScale.x, UIScale.y, UIScale.z);
+        const { 
+            ui_offset_position_client_side_uuid: uopV, 
+            ui_offset_rotation_client_side_uuid: uorV,
+            ui_scale_client_side_uuid: usV
+        } = object.options.recordData;
+        const uiPosition = new THREE.Vector3(uopV.x, uopV.y, uopV.z);
+        const uiRotation = new THREE.Euler(uorV.x, uorV.y, uorV.z);
+        const uiScale = new THREE.Vector3(usV.x, usV.y, usV.z);
         const planeGeometry = new THREE.PlaneGeometry(2, 1);
         const planeMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);

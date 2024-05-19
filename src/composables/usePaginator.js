@@ -7,13 +7,8 @@ export const usePaginator = (findAllMethod, limitInitial=10, include=null) => {
     const pages = ref(1)
 
     const refresh = async () => {
-        const params = {
-            page: page.value,
-            limit: limit.value
-        }
-        if (include) params.include = include
-        const res = await findAllMethod(params);
-
+        const res = await findAllMethod(page.value, limit.value);
+    
         entities.value = res.rows;
         pages.value = res.pages;
     };

@@ -6,7 +6,7 @@ import Editor from './pages/Editor.vue'
 
 const routes = [
     { path: '/', component: Home },
-    { path: '/editor/:sceneUUID', component: Editor, name: 'Editor' },
+    { path: '/editor/:client_side_uuid', component: Editor, name: 'Editor' },
     { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound },
 ]
 

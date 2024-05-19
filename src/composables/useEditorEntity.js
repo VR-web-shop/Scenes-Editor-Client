@@ -46,58 +46,109 @@ export function useEditorEntity() {
     }
 
     async function createStaticObject(staticObject) {
-        const { name, uuid, Mesh, Position, Rotation, Scale } = staticObject;
+        const { name, client_side_uuid, mesh_client_side_uuid, Position, Rotation, Scale } = staticObject;
         await editor.invoke(new CreateObject(OBJECT_TYPE.STATIC_OBJECT,
-            name, uuid, Mesh.uuid, Position, Rotation, Scale, staticObject
+            name, 
+            client_side_uuid, 
+            mesh_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            staticObject
         ))
     }
 
     async function updateStaticObject(staticObject) {
-        const { name, uuid, Mesh } = staticObject;
-        await editor.invoke(new UpdateObject(uuid, name, Mesh.uuid, staticObject));
+        const { name, client_side_uuid, mesh_client_side_uuid } = staticObject;
+        await editor.invoke(new UpdateObject(
+            client_side_uuid, 
+            name, 
+            mesh_client_side_uuid, 
+            staticObject
+        ));
     }
 
     async function createLight(light) {
-        const { name, uuid, scene_light_type_name, intensity, hexColor, Position, Rotation } = light;
+        const { name, client_side_uuid, scene_light_type_name, intensity, hexColor, Position, Rotation } = light;
         await editor.invoke(new CreateLight(
-            name, uuid, scene_light_type_name, intensity, hexColor, Position, Rotation, light
+            name, 
+            client_side_uuid, 
+            scene_light_type_name, 
+            intensity, 
+            hexColor, 
+            Position,
+            Rotation, 
+            light
         ));
     }
 
     async function updateLight(light) {
-        const { name, uuid, scene_light_type_name, intensity, hexColor } = light;
-        await editor.invoke(new UpdateLight(uuid, name, scene_light_type_name, intensity, hexColor, light));
+        const { name, client_side_uuid, scene_light_type_name, intensity, hexColor } = light;
+        await editor.invoke(new UpdateLight(
+            client_side_uuid, 
+            name, 
+            scene_light_type_name, 
+            intensity, 
+            hexColor, 
+            light
+        ));
     }
 
     async function createFloor(floor) {
-        const { name, uuid, Mesh, Position, Rotation, Scale } = floor;
+        const { name, client_side_uuid, mesh_client_side_uuid, Position, Rotation, Scale } = floor;
         await editor.invoke(new CreateObject(
-            OBJECT_TYPE.FLOOR, name, uuid, Mesh.uuid, Position, Rotation, Scale, floor
+            OBJECT_TYPE.FLOOR, 
+            name, 
+            client_side_uuid, 
+            mesh_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            floor
         ));
     }
 
     async function updateFloor(floor) {
-        const { name, uuid, Mesh } = floor;
+        const { name, client_side_uuid, mesh_client_side_uuid } = floor;
         await editor.invoke(new UpdateObject(
-            uuid, name, Mesh.uuid, floor
+            client_side_uuid, 
+            name, 
+            mesh_client_side_uuid, 
+            floor
         ));
     }
 
     async function createProduct(sceneProduct) {
         if (!sceneProduct.Mesh) return;
         const valuta = productsCtrl.valuta.value;
-        const { uuid, Mesh, Product, Position, Rotation, Scale } = sceneProduct;
+        const { client_side_uuid, mesh_client_side_uuid, Product, Position, Rotation, Scale } = sceneProduct;
         await editor.invoke(new CreateSceneProduct(
-            OBJECT_TYPE.PRODUCT, Product.name, uuid, Mesh.uuid, Position, Rotation, Scale, sceneProduct, valuta
+            OBJECT_TYPE.PRODUCT, 
+            Product.name, 
+            client_side_uuid, 
+            mesh_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            sceneProduct, 
+            valuta
         ));
     }
 
     async function updateProduct(sceneProduct) {
         if (!sceneProduct.Mesh) return;
         const valuta = productsCtrl.valuta.value;
-        const { uuid, Mesh, Product, Position, Rotation, Scale } = sceneProduct;
+        const { client_side_uuid, mesh_client_side_uuid, Product, Position, Rotation, Scale } = sceneProduct;
         await editor.invoke(new UpdateSceneProduct(
-            OBJECT_TYPE.PRODUCT, Product.name, uuid, Mesh.uuid, Position, Rotation, Scale, sceneProduct, valuta
+            OBJECT_TYPE.PRODUCT, 
+            Product.name, 
+            client_side_uuid, 
+            mesh_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            sceneProduct, 
+            valuta
         ));
     }
 
@@ -106,26 +157,46 @@ export function useEditorEntity() {
     }
 
     async function createCheckout(checkout) {
-        const { name, uuid, Mesh, Position, Rotation, Scale } = checkout;
         await editor.invoke(new CreateCheckout(
-            OBJECT_TYPE.CHECKOUT, name, uuid, Mesh.uuid, Position, Rotation, Scale, checkout
+            OBJECT_TYPE.CHECKOUT, 
+            checkout.name, 
+            checkout.client_side_uuid, 
+            checkout.mesh_client_side_uuid, 
+            checkout.position_client_side_uuid,
+            checkout.rotation_client_side_uuid, 
+            checkout.scale_client_side_uuid, 
+            checkout
         ));
     }
 
     async function updateCheckout(checkout) {
-        const { name, uuid, Mesh, Position, Rotation, Scale } = checkout;
+        const { name, client_side_uuid, mesh_client_side_uuid, Position, Rotation, Scale } = checkout;
         await editor.invoke(new UpdateCheckout(
-            OBJECT_TYPE.CHECKOUT, name, uuid, Mesh.uuid, Position, Rotation, Scale, checkout
+            OBJECT_TYPE.CHECKOUT, 
+            name, 
+            client_side_uuid, 
+            mesh_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            checkout
         ));
     }
 
     async function createBasket(basket) {
         if (!basket.Object) return;
 
-        const { uuid, Object, Position, Rotation, Scale } = basket;
+        const { client_side_uuid, object_client_side_uuid, Position, Rotation, Scale } = basket;
         const name = 'Scene Basket';
         await editor.invoke(new CreateBasket(
-            OBJECT_TYPE.BASKET, name, uuid, Object.uuid, Position, Rotation, Scale, basket
+            OBJECT_TYPE.BASKET, 
+            name, 
+            client_side_uuid, 
+            object_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            basket
         ));
     }
 
@@ -133,47 +204,69 @@ export function useEditorEntity() {
         if (!basket.Object) return;
         console.log(basket);
 
-        const { uuid, Object, Position, Rotation, Scale } = basket;
+        const { client_side_uuid, object_client_side_uuid, Position, Rotation, Scale } = basket;
         const name = 'Scene Basket';
         await editor.invoke(new UpdateBasket(
-            OBJECT_TYPE.BASKET, name, uuid, Object.uuid, Position, Rotation, Scale, basket
+            OBJECT_TYPE.BASKET, 
+            name, 
+            client_side_uuid, 
+            object_client_side_uuid, 
+            Position, 
+            Rotation, 
+            Scale, 
+            basket
         ));
     }
 
     async function createMesh(mesh, submeshConfigurations=[]) {
         const submeshes = submeshConfigurations.map((submesh) => {
-            return new LoadMesh.SubMeshConfiguration(submesh.submesh_name, submesh.material.uuid);
+            return new LoadMesh.SubMeshConfiguration(submesh.submesh_name, submesh.material.client_side_uuid);
         });
-        await editor.invoke(new LoadMesh(mesh.uuid, mesh.source, submeshes));
+        await editor.invoke(new LoadMesh(mesh.client_side_uuid, mesh.source, submeshes));
     }
 
     async function createTexture(texture) {
-        const { uuid, source, texture_type_name } = texture;
-        await editor.invoke(new LoadTexture(uuid, source, texture_type_name));
+        const { client_side_uuid, source, texture_type_name } = texture;
+        await editor.invoke(new LoadTexture(client_side_uuid, source, texture_type_name));
     }
 
     async function createMaterial(material, textures=[]) {
         const textureNames = textures.map(t => t.uuid);
-        await editor.invoke(new LoadMaterial(material.uuid, material.material_type_name, textureNames));
+        const { client_side_uuid, material_type_name } = material;
+        await editor.invoke(new LoadMaterial(client_side_uuid, material_type_name, textureNames));
     }
 
     async function createCamera(camera) {
-        const { uuid, Position, Rotation } = camera;
+        const { client_side_uuid, Position, Rotation } = camera;
         const name = 'Scene Camera';
         const mesh = 'FAKE_CAMERA';
         const scale = {x: 1, y: 1, z: 1};
         await editor.invoke(new CreateObject(
-            OBJECT_TYPE.CAMERA, name, uuid, mesh, Position, Rotation, scale, camera
+            OBJECT_TYPE.CAMERA, 
+            name, 
+            client_side_uuid, 
+            mesh, 
+            Position, 
+            Rotation, 
+            scale, 
+            camera
         ));
     }
 
     async function createCharacter(character) {
-        const { uuid, Position, Rotation } = character;
+        const { client_side_uuid, Position, Rotation } = character;
         const name = 'Scene Character';
         const mesh = 'FAKE_CHARACTER';
         const scale = {x: 1, y: 1, z: 1};
         await editor.invoke(new CreateObject(
-            OBJECT_TYPE.CHARACTER, name, uuid, mesh, Position, Rotation, scale, character
+            OBJECT_TYPE.CHARACTER, 
+            name, 
+            client_side_uuid, 
+            mesh, 
+            Position, 
+            Rotation, 
+            scale, 
+            character
         ));
     }
 

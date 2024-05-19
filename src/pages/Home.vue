@@ -4,6 +4,7 @@ import { router } from '../router.js';
 import { useToast } from '../composables/useToast.js';
 import { useSceneSDK } from '../composables/useScenesSDK.js';
 import { ref, onMounted } from 'vue';
+import { v4 } from 'uuid';
 
 const paginatorRef = ref()
 const scenes = ref([]);
@@ -12,6 +13,7 @@ const { sdk } = useSceneSDK()
 
 const name = ref('')
 const description = ref('')
+const active = ref('false')
 const create = async () => {
     if (!name.value) {
         toastCtrl.add('Please enter a name for the scene', 5000, 'error')
@@ -23,10 +25,11 @@ const create = async () => {
         return
     }
 
-    const scene = await sdk.api.SceneController.create({
+    const scene = await sdk.Scene.create({
+        client_side_uuid: v4(),
         name: name.value,
         description: description.value,
-        active: 'false'
+        active: active.value
     })
     name.value = ''
     description.value = ''
@@ -34,8 +37,7 @@ const create = async () => {
 }
 
 const toggleActivate = async (scene) => {
-    await sdk.api.SceneController.update({
-        uuid: scene.uuid,
+    await sdk.Scene.update(scene.client_side_uuid, {
         active: scene.active ? 'false' : true
     })
     setTimeout(async () => {
@@ -47,10 +49,11 @@ const toggleActivate = async (scene) => {
 const destroy = async (scene) => {
     const confirm = window.confirm('Are you sure you want to delete this scene?')
     if (!confirm) return
-    await sdk.api.SceneController.destroy({ uuid: scene.uuid })
+    await sdk.Scene.remove(scene.client_side_uuid)
     await paginatorRef.value.paginator.refresh()
     toastCtrl.add('Scene deleted', 5000, 'success')
 }
+
 
 </script>
 
@@ -75,6 +78,16 @@ const destroy = async (scene) => {
                 <input v-model="name" class="border border-gray-300 rounded-md p-1 w-full mb-1"
                     placeholder="Scene Name" />
 
+                <input v-model="description" class="border border-gray-300 rounded-md p-1 w-full mb-1" 
+                    placeholder="Scene Description" />
+
+                <div class="flex items-center gap-3 mb-3">
+                    <label class="flex items-center gap-1">
+                        <input v-model="active" type="checkbox" value="false" class="mr-1" />
+                        <span>Active</span>
+                    </label>
+                </div>
+
                 <div class="flex justify-center justify-between gap-1 mb-6">
                     <button @click="create" class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">
                         Create
@@ -87,9 +100,9 @@ const destroy = async (scene) => {
                     Select An Exisiting Scene
                 </h3>
 
-                <Paginator ref="paginatorRef" :findAllMethod="sdk.api.SceneController.findAll" :limit="5">
+                <Paginator ref="paginatorRef" :findAllMethod="sdk.Scene.findAll" :limit="5">
                     <template #default="{ entities }">
-                        <div v-for="scene in entities" :key="scene.id">
+                        <div v-for="scene in entities" :key="scene.client_side_uuid">
                             <div
                                 class="flex justify-between items-center gap-3 rounded-md border border-gray-300 p-3 mb-1">
                                 <div class="flex justify-start items-center gap-3">
@@ -106,7 +119,7 @@ const destroy = async (scene) => {
                                         {{ scene.active ? 'Deactivate' : 'Activate' }}
                                     </button>
 
-                                    <router-link :to="{ name: 'Editor', params: { sceneUUID: scene.uuid } }"
+                                    <router-link :to="{ name: 'Editor', params: { client_side_uuid: scene.client_side_uuid } }"
                                         class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Edit</router-link>
 
                                     <button @click="destroy(scene)"
