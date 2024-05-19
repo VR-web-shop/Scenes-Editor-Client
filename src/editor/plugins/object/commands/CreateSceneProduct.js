@@ -66,14 +66,19 @@ export default class CreateSceneProduct extends CreateObject {
 
         const object = objects.find(this.id);
 
-        const { UIOffsetPosition, UIOffsetRotation, UIScale, Product } = object.options.recordData;
-        const uiPosition = new THREE.Vector3(UIOffsetPosition.x, UIOffsetPosition.y, UIOffsetPosition.z);
-        const uiRotation = new THREE.Euler(UIOffsetRotation.x, UIOffsetRotation.y, UIOffsetRotation.z);
-        const uiScale = new THREE.Vector3(UIScale.x, UIScale.y, UIScale.z);
+        const { 
+            ui_offset_position_client_side_uuid: opV, 
+            ui_offset_rotation_client_side_uuid: orV, 
+            ui_scale_client_side_uuid: sV,
+            product 
+        } = object.options.recordData;
+        const uiPosition = new THREE.Vector3(opV.x, opV.y, opV.z);
+        const uiRotation = new THREE.Euler(orV.x, orV.y, orV.z);
+        const uiScale = new THREE.Vector3(sV.x, sV.y, sV.z);
         
         const short = this.valuta.short;
-        const nameText = createText(Product.name)
-        const priceText = createText(`${Product.price} ${short}`) 
+        const nameText = createText(product.name)
+        const priceText = createText(`${product.price} ${short}`) 
         const outOfStockText = createText('Out of stock', 0xff0000)
         const wrapper = new THREE.Object3D()
         

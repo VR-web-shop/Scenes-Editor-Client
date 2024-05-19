@@ -40,7 +40,7 @@ export default class CreateCheckout extends CreateObject {
             throw new Error('Dependency Error: Unable to find objects plugin')
         }
 
-        const object = objects.find(this.id);
+        const object = objects.findByIdAndType(this.id, 'Checkout');
         
         const { 
             surface_offset_client_side_uuid: soV,

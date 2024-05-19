@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <Paginator :findAllMethod="sdk.api.MaterialController.findAll" :limit="100">
+        <Paginator :findAllMethod="sdk.Material.findAll" :limit="100">
             <template #empty>
                 <div class="text-center">No materials found</div>
             </template>

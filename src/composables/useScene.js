@@ -27,6 +27,16 @@ const getVectors = async (entities, attributes) => {
     });
 };
 
+const getProducts = async (entities) => {
+    const productIds = entities.map(e => e.product_client_side_uuid);
+    const { rows: products } = await sdk.Product.batchByUUID(productIds);
+    entities.forEach((element, index) => {
+        const product_client_side_uuid = element.product_client_side_uuid;
+        const product = products.find(p => p.client_side_uuid === product_client_side_uuid);
+        entities[index].product = { ...product, product_client_side_uuid };
+    });
+};
+
 export function useScene() {
     let editor;
 
@@ -71,6 +81,8 @@ export function useScene() {
             'rotation_client_side_uuid',
             'scale_client_side_uuid',
             'object_offset_client_side_uuid',
+            'placeholder_offset_client_side_uuid',
+            'pocket_offset_client_side_uuid',
             'insert_area_size_client_side_uuid',
             'insert_area_offset_client_side_uuid',
         ]);
@@ -124,7 +136,11 @@ export function useScene() {
             'position_client_side_uuid',
             'rotation_client_side_uuid',
             'scale_client_side_uuid',
+            'ui_offset_position_client_side_uuid', 
+            'ui_offset_rotation_client_side_uuid', 
+            'ui_scale_client_side_uuid',
         ]);
+        await getProducts(scene.scene_products);
         for (const product of scene.scene_products) {
             await editorEntityCtrl.createProduct(product);
         }

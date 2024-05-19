@@ -1,6 +1,6 @@
 <template>
     <div class="p-3">
-        <Paginator ref="paginatorRef" :find-all-method="sdk.api.MeshController.findAll" :include="[{ model: 'Material' }]" :limit="5">
+        <Paginator ref="paginatorRef" :find-all-method="sdk.Mesh.findAll" :limit="5">
             <template #empty>
                 <div>No meshes found</div>
             </template>
