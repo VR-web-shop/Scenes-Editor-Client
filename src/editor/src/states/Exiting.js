@@ -8,6 +8,7 @@ import Stopped from './Stopped.js'
  */
 export default class Exiting extends State {
     enter() {
+        console.log('Entering Exiting state')
         /**
          * Clear all the plugins
          */
