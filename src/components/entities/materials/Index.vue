@@ -1,6 +1,6 @@
 <template>
     <div class="p-3">
-        <Paginator ref="paginatorRef" :find-all-method="sdk.api.MaterialController.findAll" :include="[{ model: 'Texture' }]" :limit="5">
+        <Paginator ref="paginatorRef" :find-all-method="sdk.Material.findAll" :include="[{ model: 'Texture' }]" :limit="5">
 
             <template #empty>
                 <div>No materials found</div>

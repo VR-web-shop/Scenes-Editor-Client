@@ -1,7 +1,7 @@
 import BasePlugin from '../../src/abstractions/BasePlugin.js';
 import Util from "./src/util.js";
 import * as THREE from 'three'
-
+import { toRaw } from 'vue';
 /**
  * @class Objects
  * @classdesc Container for dynamic objects in the scene
@@ -116,7 +116,11 @@ export default class Objects extends BasePlugin {
     }
 
     find(id) {
-        return this.objects.find(({ options }) => options.id === id)
+        return toRaw(this.objects.find(({ options }) => options.id === id))
+    }
+
+    findByIdAndType(id, objectType) {
+        return this.objects.find(({ options }) => options.id === id && options.objectType === objectType)
     }
 
     getObject3Ds() {

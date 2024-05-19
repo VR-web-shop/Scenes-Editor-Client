@@ -1,6 +1,6 @@
 <template>
     <div class="p-3">
-        <Paginator ref="paginatorRef" :find-all-method="sdk.api.TextureController.findAll" :limit="5">
+        <Paginator ref="paginatorRef" :find-all-method="sdk.Texture.findAll" :limit="5">
             <template #empty>
                 <div>No textures found</div>
             </template>

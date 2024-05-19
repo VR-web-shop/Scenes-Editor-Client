@@ -1,6 +1,6 @@
 import CreateObject from './CreateObject.js'
 import * as THREE from 'three'
-
+import { toRaw } from 'vue'
 /**
  * @extends Command
  * @class
@@ -45,29 +45,37 @@ export default class CreateBasket extends CreateObject {
             throw new Error('Cache Error: Unable to find mesh cache')
         }
 
-        const object = objects.find(this.id);
-        const { ObjectOffset, Placeholder, Pocket, PocketOffset, PlaceholderOffset, InsertAreaOffset, InsertAreaSize } = object.options.recordData;
-
+        const object = objects.findByIdAndType(this.id, 'Basket');
+        const { 
+            object_offset_client_side_uuid: objectOffset,
+            placeholder_client_side_uuid, 
+            pocket_client_side_uuid, 
+            pocket_offset_client_side_uuid: pocketOffset, 
+            placeholder_offset_client_side_uuid: placeholderOffset,
+            insert_area_offset_client_side_uuid: insertAreaOffset, 
+            insert_area_size_client_side_uuid: insertAreaSize,
+        } = toRaw(object.options.recordData);
+        
         // Create placeholder
-        if (Placeholder) {
-            const placeholder = meshCache.clone(Placeholder.uuid)
+        if (placeholder_client_side_uuid) {
+            const placeholder = meshCache.clone(placeholder_client_side_uuid)
             if (!placeholder) {
                 throw new Error('Unable to clone placeholder')
             }
 
             placeholder.position.copy(object.object.position.clone()
                 .add(new THREE.Vector3(
-                    PlaceholderOffset.x,
-                    PlaceholderOffset.y,
-                    PlaceholderOffset.z
+                    placeholderOffset.x,
+                    placeholderOffset.y,
+                    placeholderOffset.z
                 )));
             object.object.add(placeholder);
             object.options.placeholder = placeholder;
         }
 
         // Create pocket
-        if (Pocket) {
-            const pocket = meshCache.clone(Pocket.uuid)
+        if (pocket_client_side_uuid) {
+            const pocket = meshCache.clone(pocket_client_side_uuid)
             if (!pocket) {
                 throw new Error('Unable to clone pocket')
             }
@@ -76,9 +84,9 @@ export default class CreateBasket extends CreateObject {
             const characterObject = character.object;
             const headOffset = 0.5; // VR Vector3d.zero = the position of the head
             pocket.position.copy(new THREE.Vector3(
-                PocketOffset.x,
-                PocketOffset.y + headOffset,
-                PocketOffset.z
+                pocketOffset.x,
+                pocketOffset.y + headOffset,
+                pocketOffset.z
             ));
             characterObject.add(pocket);
             object.options.pocket = pocket;
@@ -91,20 +99,20 @@ export default class CreateBasket extends CreateObject {
 
         // Create fake hand
         fakeHand.position.copy(new THREE.Vector3(
-            ObjectOffset.x,
-            -ObjectOffset.y,
-            ObjectOffset.z
+            objectOffset.x,
+            -objectOffset.y,
+            objectOffset.z
         ));
         object.object.add(fakeHand);
         object.options.fakeHand = fakeHand;
 
         // Create insert area
         const insertAreaPosition = new THREE.Vector3(
-            InsertAreaOffset.x,
-            InsertAreaOffset.y,
-            InsertAreaOffset.z
+            insertAreaOffset.x,
+            insertAreaOffset.y,
+            insertAreaOffset.z
         );
-        const cubeGeometry = new THREE.BoxGeometry(InsertAreaSize.x, InsertAreaSize.y, InsertAreaSize.z);
+        const cubeGeometry = new THREE.BoxGeometry(insertAreaSize.x, insertAreaSize.y, insertAreaSize.z);
         const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
         cube.position.copy(insertAreaPosition);

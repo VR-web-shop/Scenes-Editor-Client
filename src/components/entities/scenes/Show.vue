@@ -56,10 +56,12 @@ import { ref, computed, onBeforeMount } from 'vue';
 const { sdk } = useSceneSDK();
 const toastCtrl = useToast();
 const editorCtrl = useEditor();
-const sceneUUID = router.currentRoute.value.params.sceneUUID;
+const client_side_uuid = router.currentRoute.value.params.client_side_uuid;
+
 const name = ref('');
 const readView = editorCtrl.newReader(ReadScene);
 const scene = ref(readView.read());
+const dbScene = ref(null);
 const background = computed(() => {
     if (scene.value === null) {
         return "No scene";
@@ -80,8 +82,7 @@ const colorInput = ref(0x000000)
 const setBackgroundColor = async () => {
     const hex = colorInput.value;
     await editorCtrl.invoke(new SetSceneColor(hex));
-    const { SceneBackground } = await sdk.api.SceneController.find({ uuid: sceneUUID }, { include: 'scene_backgrounds' });
-    sdk.api.SceneBackgroundController.update({ uuid: SceneBackground.uuid, hex });
+    await sdk.SceneBackground.update(dbScene.value.scene_background.client_side_uuid, { hex });
     scene.value.background = new THREE.Color(hex);
 }
 
@@ -90,22 +91,17 @@ const submit = async () => {
         toastCtrl.add('Name is required', 5000, 'error');
         return
     }
-
-    await sdk.api.SceneController.update({ uuid: sceneUUID, name: name.value });
+    await sdk.Scene.update(client_side_uuid, { name: name.value, active: true });
     toastCtrl.add('Scene name updated', 5000, 'success');
 }
 
 onBeforeMount(async () => {
-    const { rows } = await sdk.api.SceneController.findAll({ 
-        limit: 100,
-        where: { uuid: sceneUUID }, 
-        include: [
-            { model: 'SceneBackground' },
-            { model: 'SceneBasket', include: ['Object']}
-        ]
-    });
-    const { name: currentName, SceneBackground, SceneBasket } = rows[0];
-    colorInput.value = SceneBackground.hex;
-    name.value = currentName;
+    const { rows } = await sdk.Scene.active();
+    const scene = rows[0];
+    const sceneBackground = scene.scene_background;
+
+    colorInput.value = sceneBackground.hex;
+    name.value = scene.name;
+    dbScene.value = scene;
 });
 </script>

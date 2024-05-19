@@ -21,61 +21,31 @@ export const useNotifications = () => {
         
         const sceneUUID = router.currentRoute.value.params.sceneUUID;
         const { sdk } = useSceneSDK();
-        const { rows: sceneProducts } = await sdk.api.SceneProductController.findAll({ 
-            limit: 1000, 
-            where: { 
-                scene_uuid: sceneUUID,
-                state_name: 'MeshRequired'
-            },
-            include: [
-                { model: 'Product' },
-                { model: 'Mesh' },
-                { model: 'Position' },
-                { model: 'Rotation' },
-                { model: 'Scale' },
-                { model: 'UIOffsetPosition' },
-                { model: 'UIOffsetRotation' },
-                { model: 'UIScale' }
-            ]
-        })
+        const { rows } = await sdk.Scene.active();
+        const scene = rows[0];
+        const sceneProducts = scene.scene_products;
+        const sceneBasket = scene.scene_basket;
 
-        if (sceneProducts.length > 0) {
+        const productsWithoutMesh = sceneProducts.filter(row => !row.mesh_client_side_uuid);
+        if (productsWithoutMesh.length > 0) {
             add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
-                `You got ${sceneProducts.length} products without a mesh`,
+                `You got ${productsWithoutMesh.length} products without a mesh`,
                 () => {
-                    const row = sceneProducts.shift();
+                    const row = productsWithoutMesh.shift();
                     usePopups().open('objects-edit-scene-product', {
                         recordData: {...row}
                     })
                 }
             );
-        }
+        }        
 
-        const { rows: sceneBaskets } = await sdk.api.SceneBasketController.findAll({ 
-            limit: 1000, 
-            where: { 
-                scene_uuid: sceneUUID,
-                state_name: 'MeshRequired'
-            },
-            include: [
-                { model: 'Position' },
-                { model: 'Rotation' },
-                { model: 'Scale' },
-                { model: 'ObjectOffset' },
-                { model: 'PlaceholderOffset' },
-                { model: 'PocketOffset' },
-                { model: 'InsertAreaOffset' },
-                { model: 'InsertAreaSize' }
-            ]
-        })
-
-        if (sceneBaskets.length > 0) {
+        const basketWithoutMesh = sceneBasket && !sceneBasket.object_client_side_uuid;
+        if (basketWithoutMesh) {
             add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
-                `You got ${sceneBaskets.length} baskets without a mesh`,
+                `You got a basket without a mesh`,
                 () => {
-                    const row = sceneBaskets.shift();
                     usePopups().open('objects-edit-basket', {
-                        recordData: {...row}
+                        recordData: {...basketWithoutMesh}
                     })
                 }
             );
