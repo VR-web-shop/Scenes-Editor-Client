@@ -7,6 +7,7 @@ import State from '../abstractions/State.js'
  */
 export default class Paused extends State {
     enter() {
+        console.log('Entering Paused state')
         /**
          * Pause all the plugins
          */

@@ -8,6 +8,7 @@ import Executing from './Executing.js';
  */
 export default class Initializing extends State {
     enter() {
+        console.log('Entering Initializing state')
         /**
          * Setup the view
          */

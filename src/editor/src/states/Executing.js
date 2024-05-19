@@ -7,6 +7,7 @@ import State from '../abstractions/State.js'
  */
 export default class Executing extends State {
     enter() {
+        console.log('Entering Executing state')
         /**
          * Resume all the plugins
          */
