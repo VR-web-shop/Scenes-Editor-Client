@@ -19,13 +19,13 @@ const sceneCtrl = useScene()
 
 onMounted(async () => {
     const editor = editorRef.value.editor;
-    editor.pause()
+    //editor.pause()
     sceneCtrl.setEditor(editor)
     await sceneCtrl.loadAllTextures()
     await sceneCtrl.loadAllMaterials()
     await sceneCtrl.loadAllMeshes()
     await sceneCtrl.loadScene(sceneUUID)    
-    editor.resume()
+    //editor.resume()
 })
 </script>
 

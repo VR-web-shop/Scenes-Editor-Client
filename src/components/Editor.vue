@@ -19,7 +19,7 @@
         <slot name="paused" :editor="editor" />
     </div>
 
-    <div v-show="isExecuting || isPaused">
+    <div>
         <canvas ref="canvas" class="block w-full h-screen" />
     </div>
 </template>
