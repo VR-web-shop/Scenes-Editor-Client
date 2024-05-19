@@ -4,7 +4,7 @@
         source: { required: true, type: 'file', accept: 'image/*' },
         texture_type_name: {
             value: type, required: true, type: 'select-paginator', paginator: {
-                findMethod: sdk.api.TextureTypeController.findAll,
+                findMethod: sdk.TextureType.findAll,
                 limit: 10,
                 emptyMessage: 'No types found',
                 foreignKey: 'name',
@@ -38,11 +38,11 @@ const type = ref(props.data ? props.data.texture_type_name : '');
 const uuid = ref(props.data ? props.data.uuid : '');
 
 const submit = async (formData, toJson, clearData, toastCtrl) => {
-    if (formData.get('uuid')) {
-        await sdk.api.TextureController.update(formData);
+    if (formData.get('client_side_uuid')) {
+        await sdk.Texture.update(formData.get('client_side_uuid'), formData);
         toastCtrl.add('Texture updated. Note: Texture updates require reloading the scene for effect.', 5000, 'success');
     } else {
-        const texture = await sdk.api.TextureController.create(formData);
+        const texture = await sdk.Texture.create(formData);
         editorEntityCtrl.createTexture(texture);
         toastCtrl.add('Texture created', 5000, 'success');
         clearData();

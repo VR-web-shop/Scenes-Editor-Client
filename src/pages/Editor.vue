@@ -32,18 +32,20 @@ onMounted(async () => {
 <template>
     <Restricted :permissions="['scenes-editor:client:access']">
         <div>
+            <div class="fixed top-3 bottom-3 left-3 rounded">
+                <Inspector :editor="editor" />
+            </div>
+                    
+            <div class="fixed top-0 right-0 p-3 flex flex-col gap-2 items-end">
+                <Tools :editor="editor" />
+                <Settings :editor="editor" />
+            </div>    
+
+            <Bottom />
+
             <Editor ref="editorRef" :frameRate="frameRate">
                 <template v-slot:executing="{ editor }">
-                    <div class="fixed top-3 bottom-3 left-3 rounded">
-                        <Inspector :editor="editor" />
-                    </div>
                     
-                    <div class="fixed top-0 right-0 p-3 flex flex-col gap-2 items-end">
-                        <Tools :editor="editor" />
-                        <Settings :editor="editor" />
-                    </div>    
-
-                    <Bottom />
                 </template>
 
                 <template v-slot:initializing="{ editor }">
