@@ -3,6 +3,7 @@ import { useProductsSDK } from "./useProductsSDK.js";
 import { useEditorEntity } from "./useEditorEntity.js";
 import { useWebsocket } from "./useWebsocket.js";
 import { useNotifications } from "./useNotifications.js";
+import { router } from "../router.js";
 
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
 import ReadObjects from "../editor/plugins/object/readers/ReadObjects.js";
@@ -60,13 +61,8 @@ export function useScene() {
         await productsCtrl.start();
         await loadEditorMeshes();
 
-        const { rows } = await sdk.Scene.active();
-        
-        if (rows.length == 0) {
-            throw new Error(`No active scene found`);
-        }
-
-        const scene = rows[0];
+        const client_side_uuid = router.currentRoute.value.params.client_side_uuid;
+        const scene = await sdk.Scene.find(client_side_uuid);
 
         await getVectors([scene.scene_character], [
             'position_client_side_uuid',
