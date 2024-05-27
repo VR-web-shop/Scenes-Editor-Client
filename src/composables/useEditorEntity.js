@@ -222,9 +222,9 @@ export function useEditorEntity() {
     }
 
     async function createMaterial(material, textures=[]) {
-        const textureNames = textures.map(t => t.uuid);
+        const textureNames = textures.map(t => t.client_side_uuid);
         const { client_side_uuid, material_type_name } = material;
-        await editor.invoke(new LoadMaterial(client_side_uuid, material_type_name, textureNames));
+        //await editor.invoke(new LoadMaterial(client_side_uuid, material_type_name, textureNames));
     }
 
     async function createCamera(camera) {

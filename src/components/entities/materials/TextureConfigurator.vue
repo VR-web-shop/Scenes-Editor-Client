@@ -6,7 +6,7 @@
         <div class="mb-3 pb-3 border-b border-gray-500">
             <p v-if="textures.length === 0" class="text-gray-500">None</p>
             <div v-else>
-                <div v-for="texture in textures" :key="texture.uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
+                <div v-for="texture in textures" :key="texture.client_side_uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center justify-start gap-2">
                             <span class="text-white">{{ texture.name }}</span>
@@ -22,13 +22,13 @@
             </div>
         </div>
 
-        <Paginator :findAllMethod="sdk.api.TextureController.findAll" :limit="100">
+        <Paginator :findAllMethod="sdk.Texture.findAll" :limit="100">
             <template #empty>
                 <div class="text-center">No textures found</div>
             </template>
 
             <template #default="{ entities }">
-                <div v-for="texture in entities" :key="texture.id" class="p-2 bg-white/[.10] rounded-md mb-1">
+                <div v-for="texture in entities" :key="texture.client_side_uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center justify-start gap-2">
                             <span class="text-white">{{ texture.name }}</span>

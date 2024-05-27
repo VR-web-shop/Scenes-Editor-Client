@@ -32,7 +32,7 @@
             </template>
 
             <template #default="{ entities }">
-                <div v-for="material in entities" :key="material.uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
+                <div v-for="material in entities" :key="material.client_side_uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
                     <div class="flex items-center justify-between gap-3">
                         <span class="text-white">{{ material.name }}</span>
 
@@ -57,7 +57,7 @@ import Paginator from '../../UI/Paginator.vue';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { ref, toRaw, onBeforeMount, defineExpose } from 'vue';
 const props = defineProps({
-    uuid: {
+    client_side_uuid: {
         type: String,
         default: null
     }
@@ -70,7 +70,8 @@ const clear = () => submeshConfigurations.value = [];
 
 const addMaterial = (material, submesh_name = '') => {
     const id = submeshConfigurations.value.length + 1;
-    submeshConfigurations.value.push({ id, submesh_name, material });
+    submeshConfigurations.value.push({ id, submesh_name, material: toRaw(material) });
+    console.log(submeshConfigurations.value);
 }
 
 const removeConfig = (config) => {
@@ -78,14 +79,13 @@ const removeConfig = (config) => {
 }
 
 onBeforeMount(async () => {
-    if (props.uuid) {
-        const { rows } = await sdk.api.MeshMaterialController.findAll({
-            limit: 1000, where: { mesh_uuid: props.uuid }, include: [
-                { model: 'Material' }
-            ]
-        });
-        for (const meshMaterial of rows) {
-            addMaterial(meshMaterial.Material, meshMaterial.submesh_name);
+    if (props.client_side_uuid) {
+        const res = await fetch(`${import.meta.env.VITE_SCENES_SERVER_URL}/api/v1/mesh/${props.client_side_uuid}/mesh_materials`)
+        const meshData = await res.json();
+        const meshMaterials = meshData.meshMaterials;
+
+        for (const meshMaterial of meshMaterials) {
+            addMaterial(meshMaterial.material, meshMaterial.submesh_name);
         }
     }
 });

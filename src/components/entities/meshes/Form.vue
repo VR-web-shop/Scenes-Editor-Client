@@ -1,11 +1,11 @@
 <template>
-    <FormComponent :submitMethod="submit" :buttonText="uuid ? 'Update' : 'Create'" :record="{
+    <FormComponent :submitMethod="submit" :buttonText="client_side_uuid ? 'Update' : 'Create'" :record="{
         name: { value: name, required: true, type: 'text' },
         source: { required: true, type: 'file' },
     }
         ">
-            <SubmeshConfigurator :uuid="uuid" ref="submeshConfiguratorRef" />
-            <input v-if="uuid" type="hidden" name="uuid" :value="uuid" />
+            <SubmeshConfigurator :client_side_uuid="client_side_uuid" ref="submeshConfiguratorRef" />
+            <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
     </FormComponent>
 </template>
 
@@ -15,6 +15,7 @@ import FormComponent from '../../UI/Form.vue';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { useEditorEntity } from '../../../composables/useEditorEntity.js';
 import { ref } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps({
     data: {
@@ -27,7 +28,7 @@ const { sdk } = useSceneSDK();
 const editorEntityCtrl = useEditorEntity();
 const submeshConfiguratorRef = ref();
 const name = ref(props.data ? props.data.name : '');
-const uuid = ref(props.data ? props.data.uuid : '');
+const client_side_uuid = ref(props.data ? props.data.client_side_uuid : '');
 
 const submit = async (formData, toJson, clearData, toastCtrl) => {
     const submeshConfigurations = submeshConfiguratorRef.value.getSubmeshConfigurations();
@@ -38,32 +39,53 @@ const submit = async (formData, toJson, clearData, toastCtrl) => {
         }
     }
     
-    if (formData.get('uuid')) {
+    if (formData.get('client_side_uuid')) {
         // Delete existing submeshes
-        const existingSubmeshes = await sdk.api.MeshMaterialController.findAll({ limit: 1000, where: { mesh_uuid: uuid.value } });
-        for (const submesh of existingSubmeshes.rows) {
-            await sdk.api.MeshMaterialController.destroy({ uuid: submesh.uuid });
+        const res = await fetch(`${import.meta.env.VITE_SCENES_SERVER_URL}/api/v1/mesh/${client_side_uuid.value}/mesh_materials`)
+        const meshData = await res.json();
+        const meshMaterials = meshData.meshMaterials;
+
+        for (const submesh of meshMaterials) {
+            await sdk.MeshMaterial.remove(submesh.client_side_uuid);
         }
 
         // Create new submeshes
         for (const submesh of submeshConfigurations) {
-            await sdk.api.MeshMaterialController.create({
-                mesh_uuid: uuid.value,
-                material_uuid: submesh.material.uuid,
+            await sdk.MeshMaterial.create({
+                client_side_uuid: uuidv4(),
+                mesh_client_side_uuid: client_side_uuid.value,
+                material_client_side_uuid: submesh.material.client_side_uuid,
                 submesh_name: submesh.submesh_name
             });
         }
 
-        // Update mesh
-        await sdk.api.MeshController.update(formData);
+        const token = localStorage.getItem('auth');
+        await fetch(`${import.meta.env.VITE_SCENES_SERVER_URL}/api/v1/mesh/${client_side_uuid.value}`, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        })
         toastCtrl.add('Mesh updated successfully. Note: Updating meshes will first take effect after reload due to complexity of changing meshes in runtime.');
     } else {
-        const mesh = await sdk.api.MeshController.create(formData);
+        const uuid = uuidv4();
+        formData.append('client_side_uuid', uuid);
+        const token = localStorage.getItem('auth');
+        const res = await fetch(`${import.meta.env.VITE_SCENES_SERVER_URL}/api/v1/meshes`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        })
+        const mesh = await res.json();
 
         for (const submesh of submeshConfigurations) {
-            await sdk.api.MeshMaterialController.create({
-                mesh_uuid: mesh.uuid,
-                material_uuid: submesh.material.uuid,
+            await sdk.MeshMaterial.create({
+                client_side_uuid: uuidv4(),
+                mesh_client_side_uuid: uuid,
+                material_client_side_uuid: submesh.material.client_side_uuid,
                 submesh_name: submesh.submesh_name
             });
         }
