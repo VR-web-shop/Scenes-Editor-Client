@@ -68,4 +68,8 @@ export default class UpdateBasket extends UpdateObject {
             this.recordData
         ))
     }
+
+    toString() {
+        return `UpdateBasket(objectType: ${this.objectType}, labelName: ${this.labelName}, id: ${this.id}, meshName: ${this.meshName}, position: ${this.position}, rotation: ${this.rotation}, scale: ${this.scale}, recordData: ${this.recordData})`
+    }
 }

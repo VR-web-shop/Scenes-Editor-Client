@@ -1,34 +1,39 @@
 <template>
-    <FormComponent 
-        :submitMethod="submit" 
-        :buttonText="uuid ? 'Update' : 'Create'" 
-        :record="{
-            ui_offset_position: { value: uiOffset, required: true, type: 'vector3d', placeholder: 'UI Offset Position' },
-            ui_offset_rotation: { value: uiRotation, required: true, type: 'vector3d', placeholder: 'UI Offset Rotation' },
-            ui_scale: { value: uiScale, required: true, type: 'vector3d', placeholder: 'UI Scale' },
-            product_uuid: { value: product, required: true, type: 'select-paginator', paginator: {
-                findMethod: sdk.api.ProductController.findAll,
-                limit: 10,
-                emptyMessage: 'No products found',
-                foreignKey: 'uuid',
-                displayKey: 'name',
-                valueKey: 'uuid', 
-                placeholder: 'Select Product',
-                disabledMsg: 'The product cannot be changed after creation',
-                disabled: true
-            }},
-            mesh_uuid: { value: mesh, required: true, type: 'select-paginator', paginator: {
-                findMethod: sdk.api.MeshController.findAll,
-                limit: 10,
-                emptyMessage: 'No meshes found',
-                foreignKey: 'uuid',
-                displayKey: 'name',
-                valueKey: 'uuid', 
-                placeholder: 'Select Mesh',
-            }}
-    }">
-        <input v-if="uuid" type="hidden" name="uuid" :value="uuid" />
-    </FormComponent>
+    <div>
+        <p class="text-sm text-left p-3">
+            Scene products are used to display products in the scene. A scene product requires a product, a mesh, a UI offset position, a UI offset rotation and a UI scale.
+        </p>
+        <FormComponent 
+            :submitMethod="submit" 
+            :buttonText="client_side_uuid ? 'Update' : 'Create'" 
+            :record="{
+                ui_offset_position: { value: uiOffset, required: true, type: 'vector3d', placeholder: 'UI Offset Position' },
+                ui_offset_rotation: { value: uiRotation, required: true, type: 'vector3d', placeholder: 'UI Offset Rotation' },
+                ui_scale: { value: uiScale, required: true, type: 'vector3d', placeholder: 'UI Scale' },
+                product_client_side_uuid: { value: product, required: true, type: 'select-paginator', paginator: {
+                    findMethod: sdk.Product.findAll,
+                    limit: 10,
+                    emptyMessage: 'No products found',
+                    foreignKey: 'uuid',
+                    displayKey: 'name',
+                    valueKey: 'client_side_uuid', 
+                    placeholder: 'Select Product',
+                    disabledMsg: 'The product cannot be changed after creation',
+                    disabled: true
+                }},
+                mesh_client_side_uuid: { value: mesh, required: true, type: 'select-paginator', paginator: {
+                    findMethod: sdk.Mesh.findAll,
+                    limit: 10,
+                    emptyMessage: 'No meshes found',
+                    foreignKey: 'uuid',
+                    displayKey: 'name',
+                    valueKey: 'client_side_uuid', 
+                    placeholder: 'Select Mesh',
+                }}
+        }">
+            <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
+        </FormComponent>
+    </div>
 </template>
 
 <script setup>
@@ -48,48 +53,38 @@ const props = defineProps({
 const { sdk } = useSceneSDK();
 const editorEntityCtrl = useEditorEntity();
 const notificationCtrl = useNotifications();
-const uuid = ref(props.data ? props.data.recordData.uuid : '');
-const product = ref(props.data ? props.data.recordData.product_uuid : '');
-const mesh = ref(props.data && props.data.recordData.Mesh ? props.data.recordData.Mesh.uuid : '');
-const uiOffset = ref(props.data ? props.data.recordData.UIOffsetPosition : { x: 0, y: 0, z: 0 });
-const uiRotation = ref(props.data ? props.data.recordData.UIOffsetRotation : { x: 0, y: 0, z: 0 });
-const uiScale = ref(props.data ? props.data.recordData.UIScale : { x: 0, y: 0, z: 0 });
-console.log(props.data.recordData);
+const client_side_uuid = ref(props.data ? props.data.recordData.client_side_uuid : '');
+const product = ref(props.data ? props.data.recordData.product_client_side_uuid : '');
+const mesh = ref(props.data && props.data.recordData.mesh_client_side_uuid ? props.data.recordData.mesh_client_side_uuid : '');
+const uiOffset = ref(props.data ? props.data.recordData.ui_offset_position_client_side_uuid : { x: 0, y: 0, z: 0 });
+const uiRotation = ref(props.data ? props.data.recordData.ui_offset_rotation_client_side_uuid : { x: 0, y: 0, z: 0 });
+const uiScale = ref(props.data ? props.data.recordData.ui_scale_client_side_uuid : { x: 0, y: 0, z: 0 });
+
 const submit = async (formData, toJson, clearData, toastCtrl) => {
     const params = {
         ...toJson(),
-        responseInclude: [
-            { model: 'Position' },
-            { model: 'Rotation' },
-            { model: 'Scale' },
-            { model: 'Mesh' },
-            { model: 'Product' },
-            { model: 'UIOffsetPosition' },
-            { model: 'UIOffsetRotation' },
-            { model: 'UIScale' },
-        ]
     };
 
     const uiOffsetValues = {x: params['ui_offset_position[x]'], y: params['ui_offset_position[y]'], z: params['ui_offset_position[z]']};
     const uiRotationValues = {x: params['ui_offset_rotation[x]'], y: params['ui_offset_rotation[y]'], z: params['ui_offset_rotation[z]']};
     const uiScaleValues = {x: params['ui_scale[x]'], y: params['ui_scale[y]'], z: params['ui_scale[z]']};
     
-    if (params.uuid) {
-        uiOffsetValues.uuid = props.data.recordData.UIOffsetPosition.uuid;
-        uiRotationValues.uuid = props.data.recordData.UIOffsetRotation.uuid;
-        uiScaleValues.uuid = props.data.recordData.UIScale.uuid;
+    if (params.client_side_uuid) {
+        params.ui_offset_position_client_side_uuid = props.data.recordData.ui_offset_position_client_side_uuid.client_side_uuid;
+        params.ui_offset_rotation_client_side_uuid = props.data.recordData.ui_offset_rotation_client_side_uuid.client_side_uuid;
+        params.ui_scale_client_side_uuid = props.data.recordData.ui_scale_client_side_uuid.client_side_uuid;
 
-        await sdk.api.Vector3DController.update(uiOffsetValues);
-        await sdk.api.Vector3DController.update(uiRotationValues);
-        await sdk.api.Vector3DController.update(uiScaleValues);
+        await sdk.Vector3D.update(params.ui_offset_position_client_side_uuid, uiOffsetValues);
+        await sdk.Vector3D.update(params.ui_offset_rotation_client_side_uuid, uiRotationValues);
+        await sdk.Vector3D.update(params.ui_scale_client_side_uuid, uiScaleValues);
 
-        const sceneProduct = await sdk.api.SceneProductController.update(params);
+        await sdk.SceneProduct.update(params);
 
-        if (props.data.recordData.mesh_uuid === null) {
-            await editorEntityCtrl.createProduct(sceneProduct);
-            props.data.recordData.mesh_uuid = mesh.value.uuid;
+        if (props.data.recordData.mesh_client_side_uuid === null) {
+            await editorEntityCtrl.createProduct(params);
+            props.data.recordData.mesh_client_side_uuid = mesh.value.uuid;
         } else {
-            await editorEntityCtrl.updateProduct(sceneProduct);
+            await editorEntityCtrl.updateProduct(params);
         }
 
         toastCtrl.add('Product updated', 5000, 'success');

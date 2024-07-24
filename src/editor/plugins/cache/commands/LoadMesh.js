@@ -103,6 +103,10 @@ class LoadMesh extends Command {
         
         meshCache.add(cacheKey, cacheValue)
     }
+
+    toString() {
+        return `LoadMesh(name: ${this.name}, src: ${this.src})`
+    }
 }
 
 LoadMesh.SubMeshConfiguration = SubMeshConfiguration

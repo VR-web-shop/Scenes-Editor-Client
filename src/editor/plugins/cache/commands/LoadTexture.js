@@ -67,4 +67,8 @@ export default class LoadTexture extends Command {
         const cacheValue = {texture, src: this.src, type: this.type}
         cache.add(cacheKey, cacheValue)
     }
+
+    toString() {
+        return `LoadTexture(name: ${this.name}, src: ${this.src}, type: ${this.type})`
+    }
 }

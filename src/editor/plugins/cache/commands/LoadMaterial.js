@@ -79,4 +79,8 @@ export default class LoadMaterial extends Command {
 
         materialCache.add(cacheKey, cacheValue)
     }
+
+    toString() {
+        return `LoadMaterial(name: ${this.name}, type: ${this.type}, textureNames: ${this.textureNames})`
+    }
 }

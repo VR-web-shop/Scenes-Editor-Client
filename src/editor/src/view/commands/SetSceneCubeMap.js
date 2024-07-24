@@ -37,4 +37,8 @@ export default class SetSceneCubeMap extends Command {
         const scene = viewConfiguration.sceneConfig.instance
         scene.background = cubemap
     }
+
+    toString() {
+        return `SetSceneCubeMap(cubemap: ${this.cubemap})`
+    }
 }

@@ -101,4 +101,8 @@ export default class UpdateLight extends Command {
 
         objects.update(this.id, object)
     }
+
+    toString() {
+        return `UpdateLight(id: ${this.id}, labelName: ${this.labelName}, type: ${this.type}, intensity: ${this.intensity}, color: ${this.color}, recordData: ${this.recordData})`
+    }
 }

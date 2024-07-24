@@ -28,4 +28,8 @@ export default class SetGridVisibility extends Command {
         const { gridConfig } = viewConfiguration
         gridConfig.instance.visible = this.visibility
     }
+
+    toString() {
+        return `SetGridVisibility(visibility: ${this.visibility})`
+    }
 }

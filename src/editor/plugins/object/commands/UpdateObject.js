@@ -96,4 +96,8 @@ export default class UpdateObject extends Command {
 
         objects.update(this.id, object)
     }
+
+    toString() {
+        return `UpdateObject(id: ${this.id}, labelName: ${this.labelName}, meshName: ${this.meshName}, recordData: ${this.recordData})`
+    }
 }

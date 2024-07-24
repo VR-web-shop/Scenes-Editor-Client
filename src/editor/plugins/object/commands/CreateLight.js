@@ -81,4 +81,8 @@ export default class CreateLight extends Command {
             recordData: this.recordData 
         })
     }
+
+    toString() {
+        return `CreateLight(labelName: ${this.labelName}, id: ${this.id}, type: ${this.type})`
+    }
 }

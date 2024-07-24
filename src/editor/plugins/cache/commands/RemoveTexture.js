@@ -42,4 +42,8 @@ export default class RemoveMesh extends Command {
 
         textureCache.dispose(cacheKey)
     }
+
+    toString() {
+        return `RemoveTexture(name: ${this.name})`
+    }
 }

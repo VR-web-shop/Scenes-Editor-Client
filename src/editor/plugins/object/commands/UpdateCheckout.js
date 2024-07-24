@@ -58,4 +58,8 @@ export default class UpdateCheckout extends UpdateObject {
             this.recordData
         ))
     }
+
+    toString() {
+        return `UpdateCheckout(objectType: ${this.objectType}, labelName: ${this.labelName}, id: ${this.id}, meshName: ${this.meshName}, position: ${this.position}, rotation: ${this.rotation}, scale: ${this.scale}, recordData: ${this.recordData})`
+    }
 }

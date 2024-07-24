@@ -38,4 +38,8 @@ export default class SetBasketVisible extends Command {
             object.options.fakeHand.visible = this.visibilityState;
         });
     }
+
+    toString() {
+        return `SetBasketVisible(visibilityState: ${this.visibilityState})`
+    }
 }

@@ -14,6 +14,8 @@ export default class Invoker {
      */
     constructor(options = {}) {
         this.options = options
+        this.log = []
+        this.onLog = []
     }
 
     /**
@@ -25,11 +27,22 @@ export default class Invoker {
      */
     setCommand(command) {
         if (!(command instanceof Command)) {
+            this.logCommand('Error: Command must be an instance of Command')
             throw new Error('Must be a Command')
         }
 
         this.command = command
         this.command?.setInvoker(this)
+    }
+
+    logCommand(message) {
+        const time = new Date().toLocaleTimeString()
+        this.log.push(`${time} - ${message}`)
+        this.onLog.forEach(callback => callback(message))
+    }
+
+    addLogListener(callback) {
+        this.onLog.push(callback)
     }
 
     /**
@@ -39,6 +52,7 @@ export default class Invoker {
      */
     async execute() {
         if (this.command) {
+            this.logCommand(`Executing command ${this.command.toString()}`)
             await this.command.execute()
         }
     }
