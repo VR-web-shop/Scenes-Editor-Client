@@ -1,26 +1,28 @@
 <template>
-    <div v-if="isInitializing">
-        <slot name="initializing" :editor="editor" />
-    </div>
-
-    <div v-if="isExecuting">
-        <slot name="executing" :editor="editor" /> 
-    </div>
-
-    <div v-if="isExiting">
-        <slot name="exiting" :editor="editor" />
-    </div>
-
-    <div v-if="isStopped">
-        <slot name="stopped" :editor="editor" />
-    </div>
-
-    <div v-if="isPaused">
-        <slot name="paused" :editor="editor" />
-    </div>
-
     <div>
-        <canvas ref="canvas" class="block w-full h-screen" />
+        <div v-if="isInitializing">
+            <slot name="initializing" :editor="editor" />
+        </div>
+
+        <div v-if="isExecuting">
+            <slot name="executing" :editor="editor" />
+        </div>
+
+        <div v-if="isExiting">
+            <slot name="exiting" :editor="editor" />
+        </div>
+
+        <div v-if="isStopped">
+            <slot name="stopped" :editor="editor" />
+        </div>
+
+        <div v-if="isPaused">
+            <slot name="paused" :editor="editor" />
+        </div>
+
+        <div>
+            <canvas ref="canvas" class="block w-full h-screen" />
+        </div>
     </div>
 </template>
 
@@ -64,4 +66,3 @@ defineExpose({
     editor
 })
 </script>
-

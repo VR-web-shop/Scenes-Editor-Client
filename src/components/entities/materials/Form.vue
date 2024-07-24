@@ -1,22 +1,27 @@
 <template>
-    <FormComponent 
-        :submitMethod="submit" 
-        :buttonText="client_side_uuid ? 'Update' : 'Create'" 
-        :record="{
-            name: { value: name, required: true, type: 'text' },
-            material_type_name: { value: type, required: true, type: 'select-paginator', paginator: {
-                    findMethod: sdk.MaterialType.findAll,
-                    limit: 10,
-                    emptyMessage: 'No types found',
-                    foreignKey: 'name',
-                    displayKey: 'name',
-                    valueKey: 'name', 
-                    placeholder: 'Select Type'
-            }}
-    }">
-        <TextureConfigurator :textures="initialTextures" ref="textureConfiguratorRef" />
-        <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
-    </FormComponent>
+    <div class="w-64">
+        <p class="text-sm text-left p-3">
+            Materials are used to define the visual appearance of an object's mesh. A material requires a name, a type and a set of textures.
+        </p>
+        <FormComponent 
+            :submitMethod="submit" 
+            :buttonText="client_side_uuid ? 'Update' : 'Create'" 
+            :record="{
+                name: { value: name, required: true, type: 'text' },
+                material_type_name: { value: type, required: true, type: 'select-paginator', paginator: {
+                        findMethod: sdk.MaterialType.findAll,
+                        limit: 10,
+                        emptyMessage: 'No types found',
+                        foreignKey: 'name',
+                        displayKey: 'name',
+                        valueKey: 'name', 
+                        placeholder: 'Select Type'
+                }}
+        }">
+            <TextureConfigurator :textures="initialTextures" ref="textureConfiguratorRef" />
+            <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
+        </FormComponent>
+    </div>
 </template>
 
 <script setup>
@@ -45,7 +50,6 @@ const client_side_uuid = ref(props.data ? props.data.client_side_uuid : '');
 const submit = async (formData, toJson, clearData, toastCtrl) => {
     const textures = textureConfiguratorRef.value.getTextures();
     const params = { ...toJson() };
-    console.log(textures);
 
     if (client_side_uuid.value) {
         // Delete all material textures

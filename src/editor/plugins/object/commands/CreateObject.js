@@ -93,4 +93,8 @@ export default class CreateObject extends Command {
             recordData: this.recordData 
         })
     }
+
+    toString() {
+        return `CreateObject(objectType: ${this.objectType}, labelName: ${this.labelName}, id: ${this.id}, meshName: ${this.meshName}, position: ${JSON.stringify(this.position)}, rotation: ${JSON.stringify(this.rotation)}, scale: ${JSON.stringify(this.scale)}, recordData: ${JSON.stringify(this.recordData)})`
+    }
 }

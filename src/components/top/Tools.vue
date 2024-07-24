@@ -37,8 +37,8 @@ const props = defineProps({
 const tools = ref([
   { name: 'Move', handler: new MoveTool(), icon: 'MoveIcon' },
   { name: 'Rotate', handler: new RotateTool(), icon: 'RotateIcon' },
-  { name: 'Scale', handler: new ScaleTool(), icon: 'ScaleIcon' },
-  { name: 'Mirror', handler: new MirrorTool(), icon: 'MirrorIcon' }
+  //{ name: 'Scale', handler: new ScaleTool(), icon: 'ScaleIcon' }, // Not implemented yet
+  //{ name: 'Mirror', handler: new MirrorTool(), icon: 'MirrorIcon' } // Not implemented yet
 ]);
 const icons = { MoveIcon, RotateIcon, ScaleIcon, MirrorIcon };
 const toggleTool = (tool) => {

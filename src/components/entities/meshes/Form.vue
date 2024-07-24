@@ -1,12 +1,17 @@
 <template>
-    <FormComponent :submitMethod="submit" :buttonText="client_side_uuid ? 'Update' : 'Create'" :record="{
-        name: { value: name, required: true, type: 'text' },
-        source: { required: true, type: 'file' },
-    }
-        ">
-            <SubmeshConfigurator :client_side_uuid="client_side_uuid" ref="submeshConfiguratorRef" />
-            <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
-    </FormComponent>
+    <div class="w-80">
+        <p class="text-sm text-left p-3">
+            Meshes are used to define the visual appearance of objects in the scene. A mesh requires a name, a source file and a set of submesh configurations.
+        </p>
+        <FormComponent :submitMethod="submit" :buttonText="client_side_uuid ? 'Update' : 'Create'" :record="{
+            name: { value: name, required: true, type: 'text' },
+            source: { required: true, type: 'file' },
+        }
+            ">
+                <SubmeshConfigurator :client_side_uuid="client_side_uuid" ref="submeshConfiguratorRef" />
+                <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
+        </FormComponent>
+    </div>
 </template>
 
 <script setup>

@@ -42,4 +42,8 @@ export default class RemoveMesh extends Command {
 
         meshCache.dispose(cacheKey)
     }
+
+    toString() {
+        return `RemoveMesh(name: ${this.name})`
+    }
 }

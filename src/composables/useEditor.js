@@ -35,6 +35,10 @@ export const useEditor = () => {
         editor.value.stop()
     }
 
+    const invoker = () => {
+        return editor.value.invoker
+    }
+
     const isState = (stateType) => {
         if (!editor.value) return false
         return stateReader.value.compare(stateType)
@@ -55,6 +59,7 @@ export const useEditor = () => {
         pause,
         resume,
         isState,
+        invoker,
         invoke,
         newReader
     }

@@ -7,16 +7,16 @@
             <p v-if="textures.length === 0" class="text-gray-500">None</p>
             <div v-else>
                 <div v-for="texture in textures" :key="texture.client_side_uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-1">
                         <div class="flex items-center justify-start gap-2">
                             <span class="text-white">{{ texture.name }}</span>
-                            <span class="bg-red-500 px-1 py-1 rounded-md text-white">
+                            <span class="text-xs bg-red-500 px-1 py-1 rounded-md text-white">
                                 {{ texture.texture_type_name }}
                             </span>
                         </div>
 
                         <button type="button" @click="deselectTexture(texture)"
-                            class="bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
+                            class="text-xs bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
                     </div>
                 </div>
             </div>
@@ -29,25 +29,25 @@
 
             <template #default="{ entities }">
                 <div v-for="texture in entities" :key="texture.client_side_uuid" class="p-2 bg-white/[.10] rounded-md mb-1">
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between gap-1">
                         <div class="flex items-center justify-start gap-2">
                             <span class="text-white">{{ texture.name }}</span>
-                            <span class="bg-red-500 px-1 py-1 rounded-md text-white">
+                            <span class="text-xs bg-red-500 px-1 py-1 rounded-md text-white">
                                 {{ texture.texture_type_name }}
                             </span>
                         </div>
 
                         <div v-if="!isSelected(texture) && isTextureTypeSelected(texture.texture_type_name)"
-                            class="text-gray-500">
+                            class="text-xs text-gray-500">
                             Only one of each type allowed
                         </div>
 
-                        <div v-else-if="isSelected(texture)" class="text-gray-500">
+                        <div v-else-if="isSelected(texture)" class="text-xs text-gray-500">
                             Selected
                         </div>
 
                         <button v-else type="button" @click="selectTexture(texture)"
-                            class="bg-emerald-500 text-white px-1 py-1 rounded-md">Select</button>
+                            class="text-xs bg-emerald-500 text-white px-1 py-1 rounded-md">Select</button>
                     </div>
                 </div>
             </template>

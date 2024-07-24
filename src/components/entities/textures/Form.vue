@@ -1,21 +1,27 @@
 <template>
-    <FormComponent :submitMethod="submit" :buttonText="client_side_uuid ? 'Update' : 'Create'" :record="{
-        name: { value: name, required: true, type: 'text' },
-        source: { required: true, type: 'file', accept: 'image/*' },
-        texture_type_name: {
-            value: type, required: true, type: 'select-paginator', paginator: {
-                findMethod: sdk.TextureType.findAll,
-                limit: 10,
-                emptyMessage: 'No types found',
-                foreignKey: 'name',
-                displayKey: 'name',
-                valueKey: 'name',
-                placeholder: 'Select Type'
+    <div class="w-64">
+        <p class="text-sm text-left p-3">
+            Textures can be applied to materials to create more abstract and visually appealing surfaces. A texture require a name, a type and an image file.
+        </p>
+
+        <FormComponent :submitMethod="submit" :buttonText="client_side_uuid ? 'Update' : 'Create'" :record="{
+            name: { value: name, required: true, type: 'text' },
+            source: { required: true, type: 'file', accept: 'image/*' },
+            texture_type_name: {
+                value: type, required: true, type: 'select-paginator', paginator: {
+                    findMethod: sdk.TextureType.findAll,
+                    limit: 10,
+                    emptyMessage: 'No types found',
+                    foreignKey: 'name',
+                    displayKey: 'name',
+                    valueKey: 'name',
+                    placeholder: 'Select Type'
+                }
             }
-        }
-    }">
-        <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
-    </FormComponent>
+        }">
+            <input v-if="client_side_uuid" type="hidden" name="client_side_uuid" :value="client_side_uuid" />
+        </FormComponent>
+    </div>
 </template>
 
 <script setup>

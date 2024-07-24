@@ -60,4 +60,8 @@ export default class UpdateSceneProduct extends UpdateObject {
             this.valuta
         ))
     }
+
+    toString() {
+        return `UpdateSceneProduct(id: ${this.id}, labelName: ${this.labelName}, meshName: ${this.meshName}, position: ${this.position}, rotation: ${this.rotation}, scale: ${this.scale}, recordData: ${this.recordData}, valuta: ${this.valuta})`
+    }
 }

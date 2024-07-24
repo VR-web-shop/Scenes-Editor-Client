@@ -101,8 +101,7 @@ const openPopup = (object) => {
 }
 
 const readObjects = editorCtrl.newReader(ReadObjects);
-async function findAll(params) {
-    const { limit, page } = params;
+async function findAll(page, limit) {
     const objects = readObjects.read();
     if (objects.length == 0) return { rows: [], count: 0, pages: 0 };
     
@@ -160,7 +159,8 @@ const destroy = async (object) => {
 };
 
 const focus = async (object) => {
-    const { x, y, z } = object.options.recordData.Position;
+    console.log(object);
+    const { x, y, z } = object.options.recordData.position_client_side_uuid;
     const offset = { x: 2, y: 2, z: 2 };
     editorCtrl.invoke(new SetCameraFocus(object.object, offset));
 }

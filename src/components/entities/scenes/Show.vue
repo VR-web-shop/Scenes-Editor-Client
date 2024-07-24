@@ -5,7 +5,7 @@
         <div class="mb-3 pb-3 border-b border-gray-300">
             <div class="flex items-center justify-between gap-3 text-xs uppercase mb-2">
                 <p class="text-bold">
-                    Set color
+                    Set background color
                 </p>
 
                 <div>
@@ -16,7 +16,7 @@
             <div class="flex justify-between gap-3">
                 <input type="color" v-model="colorInput" class="w-full h-10 border-none px-1 bg-black" />
                 <button class="border border-gray-300 px-3 py-1 rounded" @click="setBackgroundColor()">
-                    Update
+                    Save
                 </button>
             </div>
         </div>
@@ -24,7 +24,7 @@
         <div>
             <div class="flex items-center justify-between gap-3 text-xs uppercase mb-2">
                 <p class="text-bold">
-                    Set name
+                    Set scene name
                 </p>
 
                 <div>
@@ -36,7 +36,7 @@
                 <input type="text" placeholder="Name" v-model="name" class="w-full text-sm p-2 mb-1 rounded-md bg-white/[.10]" />
             
                 <button type="submit" class="border border-gray-300 px-3 py-1 rounded">
-                    Update
+                    Save
                 </button>
             </form>
         </div>

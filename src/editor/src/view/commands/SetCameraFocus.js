@@ -78,4 +78,8 @@ export default class SetCameraFocus extends Command {
             timeoutMethod()
         }, this.effectDelay)
     }
+
+    toString() {
+        return `SetCameraFocus(target: ${this.target}, offset: ${this.offset})`
+    }
 }

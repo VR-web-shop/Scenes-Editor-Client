@@ -42,4 +42,8 @@ export default class RemoveMaterial extends Command {
 
         materialCache.dispose(cacheKey)
     }
+
+    toString() {
+        return `RemoveMaterial(name: ${this.name})`
+    }
 }

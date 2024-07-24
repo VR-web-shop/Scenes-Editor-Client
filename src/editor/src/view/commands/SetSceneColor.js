@@ -22,6 +22,7 @@ export default class SetSceneColor extends Command {
         }
 
         this.color = new THREE.Color(hex)
+        this.hex = hex
     }
 
     /**
@@ -34,5 +35,9 @@ export default class SetSceneColor extends Command {
         const scene = viewConfiguration.sceneConfig.instance
 
         scene.background = this.color
+    }
+
+    toString() {
+        return `SetSceneColor(hex: ${this.hex})`
     }
 }

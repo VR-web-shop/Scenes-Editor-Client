@@ -39,4 +39,8 @@ export default class Command {
     async execute() {
         throw new Error('execute method must be implemented');
     }
+
+    toString() {
+        return this.constructor.name;
+    }
 }

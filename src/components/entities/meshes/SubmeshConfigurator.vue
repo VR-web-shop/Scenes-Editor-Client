@@ -1,6 +1,6 @@
 <template>
     <div class="mb-3 text-sm">
-        <p class="mb-3 text-white">
+        <p class="mt-3 mb-3 text-white">
             Submesh Configuration
         </p>
 
@@ -13,14 +13,14 @@
                         <div class="w-full">
                             <input type="text" placeholder="Submesh Name" v-model="submeshConfiguration.submesh_name"
                                 class="w-full text-white p-2 mb-1 rounded-md bg-white/[.10]" />
-                            <div class="flex gap-1 text-white text-sm">
+                            <div class="flex gap-1 text-white text-xs">
                                 <span class="font-bold">Material:</span>
                                 <span>{{ submeshConfiguration.material.name }}</span>
                             </div>
                         </div>
 
                         <button type="button" @click="removeConfig(submeshConfiguration)"
-                            class="bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
+                            class="text-xs bg-red-500 text-white px-1 py-1 rounded-md">Remove</button>
                     </div>
                 </div>
             </div>
@@ -37,12 +37,12 @@
                         <span class="text-white">{{ material.name }}</span>
 
                         <div class="flex items-center justify-start gap-2">
-                            <span class="bg-red-500 px-1 py-1 rounded-md text-white">
+                            <span class="text-xs bg-red-500 px-1 py-1 rounded-md text-white">
                                 {{ material.material_type_name }}
                             </span>
 
                             <button type="button" @click="addMaterial(material)"
-                                class="bg-emerald-500 text-white px-1 py-1 rounded-md">Add</button>
+                                class="text-xs bg-emerald-500 text-white px-1 py-1 rounded-md">Add</button>
                         </div>
                     </div>
                 </div>

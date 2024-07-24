@@ -167,24 +167,40 @@ export function useScene() {
             const isSavable = savables.includes(objectType);
 
             if (isSavable) {
-                if (!recordData.Position || !recordData.Rotation) {
+                if (!recordData.position_client_side_uuid || !recordData.rotation_client_side_uuid) {
                     console.error(`Position or Rotation not found for with ID ${id} and it cannot be saved.`, recordData);
                     continue;
                 }
 
-                if (recordData.Position.x !== position.x || recordData.Position.y !== position.y || recordData.Position.z !== position.z) {
-                    const positionUUID = recordData.Position.uuid;
-                    await sdk.Vector3d.update({ uuid: positionUUID, x: position.x, y: position.y, z: position.z });
+                
+                if (!recordData.position_client_side_uuid.x) {
+                    continue;
                 }
 
-                if (recordData.Rotation.x !== rotation.x || recordData.Rotation.y !== rotation.y || recordData.Rotation.z !== rotation.z) {
-                    const rotationUUID = recordData.Rotation.uuid;
-                    await sdk.Vector3d.update({ uuid: rotationUUID, x: rotation.x, y: rotation.y, z: rotation.z });
+                if (recordData.position_client_side_uuid.x !== position.x 
+                 || recordData.position_client_side_uuid.y !== position.y 
+                 || recordData.position_client_side_uuid.z !== position.z) {
+                    const positionUUID = recordData.position_client_side_uuid.client_side_uuid;
+                    await sdk.Vector3D.update(positionUUID, { x: position.x, y: position.y, z: position.z });
                 }
 
-                if (recordData.Scale && (recordData.Scale.x !== scale.x || recordData.Scale.y !== scale.y || recordData.Scale.z !== scale.z)) {
-                    const scaleUUID = recordData.Scale.uuid;
-                    await sdk.Vector3d.update({ uuid: scaleUUID, x: scale.x, y: scale.y, z: scale.z });
+                if (!recordData.rotation_client_side_uuid.x) {
+                    continue;
+                }
+
+                if (recordData.rotation_client_side_uuid.x !== rotation.x 
+                 || recordData.rotation_client_side_uuid.y !== rotation.y 
+                 || recordData.rotation_client_side_uuid.z !== rotation.z) {
+                    const rotationUUID = recordData.rotation_client_side_uuid.client_side_uuid;
+                    await sdk.Vector3D.update(rotationUUID, { x: rotation.x, y: rotation.y, z: rotation.z });
+                }
+
+                if (recordData.scale_client_side_uuid 
+                    && (recordData.scale_client_side_uuid.x !== scale.x 
+                     || recordData.scale_client_side_uuid.y !== scale.y 
+                     || recordData.scale_client_side_uuid.z !== scale.z)) {
+                    const scaleUUID = recordData.scale_client_side_uuid.client_side_uuid;
+                    await sdk.Vector3D.update(scaleUUID, { x: scale.x, y: scale.y, z: scale.z });
                 }
             }
         }

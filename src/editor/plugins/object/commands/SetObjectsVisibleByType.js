@@ -43,4 +43,8 @@ export default class SetObjectsVisibleByType extends Command {
             object.object.visible = this.visibilityState;
         });
     }
+
+    toString() {
+        return `SetObjectsVisibleByType(visibilityState: ${this.visibilityState}, objectType: ${this.objectType})`
+    }
 }

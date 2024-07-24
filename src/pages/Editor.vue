@@ -6,6 +6,7 @@ import Settings from '../components/top/Settings.vue';
 import Inspector from '../components/inspector/Inspector.vue';
 import Bottom from '../components/bottom/Bottom.vue';
 import Editor from '../components/Editor.vue';
+import EditorLog from '../components/EditorLog.vue';
 
 import { useScene } from '../composables/useScene.js';
 import { router } from '../router.js';
@@ -14,8 +15,12 @@ import { ref, onMounted } from 'vue';
 const editorRef = ref();
 const frameRate = 15;
 const sceneUUID = router.currentRoute.value.params.sceneUUID;
-
 const sceneCtrl = useScene()
+const showEditorLog = ref(false)
+
+const toggleEditorLog = () => {
+    showEditorLog.value = !showEditorLog.value
+}
 
 onMounted(async () => {
     const editor = editorRef.value.editor;
@@ -32,20 +37,27 @@ onMounted(async () => {
 <template>
     <Restricted :permissions="['scenes-editor:client:access']">
         <div>
-            <div class="fixed top-3 bottom-3 left-3 rounded">
-                <Inspector :editor="editor" />
+            <div v-if="editorRef" class="fixed top-3 bottom-3 left-3 rounded">
+                <Inspector :editor="editorRef.editor" />
             </div>
                     
-            <div class="fixed top-0 right-0 p-3 flex flex-col gap-2 items-end">
-                <Tools :editor="editor" />
-                <Settings :editor="editor" />
-            </div>    
+            <div v-if="editorRef" class="fixed top-0 right-0 p-3 flex flex-col gap-2 items-end">
+                <Settings :editor="editorRef.editor" />
+                <Tools :editor="editorRef.editor" />
+            </div>   
+            
+            <div v-if="showEditorLog && editorRef" class="bg-black text-white fixed h-44 bottom-0 left-0 right-0 p-3 overflow-y-auto">
+                <EditorLog :editor="editorRef.editor" :toggleEditorLog="toggleEditorLog" />
+            </div>
+
+            <div v-if="editorRef" class="fixed bottom-3 right-3">
+                <button @click="toggleEditorLog" class="bg-slate-800 text-white p-1 text-sm">Log</button>
+            </div>
 
             <Bottom />
 
             <Editor ref="editorRef" :frameRate="frameRate">
                 <template v-slot:executing="{ editor }">
-                    
                 </template>
 
                 <template v-slot:initializing="{ editor }">
