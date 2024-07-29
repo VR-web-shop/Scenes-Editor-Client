@@ -76,36 +76,58 @@ const submit = async (formData, toJson, clearData, toastCtrl) => {
     const params = {
         ...toJson(),
     };
-
+    console.log(params, props.data);
     const objectOffsetValues = {x: params['object_offset[x]'], y: params['object_offset[y]'], z: params['object_offset[z]']};
     const placeholderOffsetValues = {x: params['placeholder_offset[x]'], y: params['placeholder_offset[y]'], z: params['placeholder_offset[z]']};
     const pocketOffsetValues = {x: params['pocket_offset[x]'], y: params['pocket_offset[y]'], z: params['pocket_offset[z]']};
     const insertAreaOffsetValues = {x: params['insert_area_offset[x]'], y: params['insert_area_offset[y]'], z: params['insert_area_offset[z]']};
     const insertAreaSizeValues = {x: params['insert_area_size[x]'], y: params['insert_area_size[y]'], z: params['insert_area_size[z]']};
     
-    if (params.uuid) {
-        objectOffsetValues.uuid = props.data.recordData.ObjectOffset.uuid;
-        placeholderOffsetValues.uuid = props.data.recordData.PlaceholderOffset.uuid;
-        pocketOffsetValues.uuid = props.data.recordData.PocketOffset.uuid;
-        insertAreaOffsetValues.uuid = props.data.recordData.InsertAreaOffset.uuid;
-        insertAreaSizeValues.uuid = props.data.recordData.InsertAreaSize.uuid;
+    if (params.client_side_uuid) {
+        const object_offset_client_side_uuid = props.data.recordData.object_offset_client_side_uuid.client_side_uuid;
+        const pocket_offset_client_side_uuid = props.data.recordData.pocket_offset_client_side_uuid.client_side_uuid;
+        const placeholder_offset_client_side_uuid = props.data.recordData.placeholder_offset_client_side_uuid.client_side_uuid;
+        const insert_area_offset_client_side_uuid = props.data.recordData.insert_area_offset_client_side_uuid.client_side_uuid;
+        const insert_area_size_client_side_uuid = props.data.recordData.insert_area_size_client_side_uuid.client_side_uuid;
+        const position_client_side_uuid = props.data.recordData.position_client_side_uuid.client_side_uuid;
+        const rotation_client_side_uuid = props.data.recordData.rotation_client_side_uuid.client_side_uuid;
+        const scale_client_side_uuid = props.data.recordData.scale_client_side_uuid.client_side_uuid;
 
-        await sdk.Vector3D.update(objectOffsetValues);
-        await sdk.Vector3D.update(placeholderOffsetValues);
-        await sdk.Vector3D.update(pocketOffsetValues);
-        await sdk.Vector3D.update(insertAreaOffsetValues);
-        await sdk.Vector3D.update(insertAreaSizeValues);
+        await sdk.Vector3D.update(object_offset_client_side_uuid, objectOffsetValues);
+        await sdk.Vector3D.update(placeholder_offset_client_side_uuid, placeholderOffsetValues);
+        await sdk.Vector3D.update(pocket_offset_client_side_uuid, pocketOffsetValues);
+        await sdk.Vector3D.update(insert_area_offset_client_side_uuid, insertAreaOffsetValues);
+        await sdk.Vector3D.update(insert_area_size_client_side_uuid, insertAreaSizeValues);
 
-        await sdk.SceneBasketController.update(params);
+        const basketParams = {
+            object_client_side_uuid: params.object_client_side_uuid,
+            placeholder_client_side_uuid: params.placeholder_client_side_uuid,
+            pocket_client_side_uuid: params.pocket_client_side_uuid,
+            object_offset_client_side_uuid: object_offset_client_side_uuid,
+            placeholder_offset_client_side_uuid: placeholder_offset_client_side_uuid,
+            pocket_offset_client_side_uuid: pocket_offset_client_side_uuid,
+            insert_area_offset_client_side_uuid: insert_area_offset_client_side_uuid,
+            insert_area_size_client_side_uuid: insert_area_size_client_side_uuid,
+            position_client_side_uuid: position_client_side_uuid,
+            rotation_client_side_uuid: rotation_client_side_uuid,
+            scale_client_side_uuid: scale_client_side_uuid,
+            scene_basket_state_name: 'ReadyForProducts'
+        }
 
+        await sdk.SceneBasket.update(params.client_side_uuid, basketParams);
+
+        /*
         if (props.data && props.data.recordData.object_uuid === null) {
             await editorEntityCtrl.createBasket(params);
         } else {
             await editorEntityCtrl.updateBasket(params);
-        }
+        }*/
+        toastCtrl.add('Real-time basket update disabled. Refresh to see changes.', 5000, 'warning');
 
-        await notificationCtrl.sync();
-        toastCtrl.add('Basket updated', 5000, 'success');
+        setTimeout(() => {
+            toastCtrl.add('Synchronize notifications', 5000, 'info');
+            notificationCtrl.sync();
+        }, 1000);
     }
 }
 </script>

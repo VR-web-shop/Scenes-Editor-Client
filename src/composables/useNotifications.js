@@ -2,6 +2,7 @@ import { router } from '../router.js';
 import { useSceneSDK } from './useScenesSDK.js';
 import { usePopups } from './usePopups.js';
 import { ref } from 'vue';
+import { getVectors } from './util.js';
 
 const notifications = ref([]);
 const callbacks = {};
@@ -19,7 +20,7 @@ export const useNotifications = () => {
     const sync = async () => {
         notifications.value = [];
         
-        const sceneUUID = router.currentRoute.value.params.sceneUUID;
+        const sceneUUID = router.currentRoute.value.params.client_side_uuid;
         const { sdk } = useSceneSDK();
         const { rows } = await sdk.Scene.active();
         const scene = rows[0];
@@ -28,6 +29,14 @@ export const useNotifications = () => {
 
         const productsWithoutMesh = sceneProducts.filter(row => !row.mesh_client_side_uuid);
         if (productsWithoutMesh.length > 0) {
+            await getVectors(productsWithoutMesh, [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+                'scale_client_side_uuid',
+                'ui_offset_position_client_side_uuid', 
+                'ui_offset_rotation_client_side_uuid', 
+                'ui_scale_client_side_uuid',
+            ]);
             add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
                 `You got ${productsWithoutMesh.length} products without a mesh`,
                 () => {
@@ -40,12 +49,23 @@ export const useNotifications = () => {
         }        
 
         const basketWithoutMesh = sceneBasket && !sceneBasket.object_client_side_uuid;
+
         if (basketWithoutMesh) {
+            await getVectors([sceneBasket], [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+                'scale_client_side_uuid',
+                'object_offset_client_side_uuid',
+                'placeholder_offset_client_side_uuid',
+                'pocket_offset_client_side_uuid',
+                'insert_area_size_client_side_uuid',
+                'insert_area_offset_client_side_uuid',
+            ]);
             add(TYPES.SCENE_PRODUCT_MESH_REQUIRED, 
                 `You got a basket without a mesh`,
                 () => {
                     usePopups().open('objects-edit-basket', {
-                        recordData: {...basketWithoutMesh}
+                        recordData: {...sceneBasket}
                     })
                 }
             );

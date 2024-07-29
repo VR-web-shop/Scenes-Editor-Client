@@ -4,7 +4,8 @@ import { useEditorEntity } from "./useEditorEntity.js";
 import { useWebsocket } from "./useWebsocket.js";
 import { useNotifications } from "./useNotifications.js";
 import { router } from "../router.js";
-
+import { getVectors } from './util.js';
+import { useToast } from "./useToast.js";
 import LoadMesh from "../editor/plugins/cache/commands/LoadMesh.js";
 import ReadObjects from "../editor/plugins/object/readers/ReadObjects.js";
 
@@ -14,19 +15,7 @@ const editorEntityCtrl = useEditorEntity();
 const notificationCtrl = useNotifications();
 const ws = useWebsocket();
 
-const getVectors = async (entities, attributes) => {
-    const vector3dIds = entities.map(e => {
-        return attributes.map(attribute => e[attribute]);
-    }).flat();
-    const { rows: vectors } = await sdk.Vector3D.batchByUUID(vector3dIds);
-    entities.forEach((element, index) => {
-        for (const attribute of attributes) {
-            const vector_client_side_uuid = element[attribute];
-            const vector = vectors.find(v => v.client_side_uuid === vector_client_side_uuid);
-            entities[index][attribute] = { ...vector, vector_client_side_uuid };
-        }
-    });
-};
+
 
 const getProducts = async (entities) => {
     const productIds = entities.map(e => e.product_client_side_uuid);
@@ -88,57 +77,67 @@ export function useScene() {
         await editorEntityCtrl.createCharacter(scene.scene_character);
         await editorEntityCtrl.createBasket(scene.scene_basket);
 
-        await getVectors(scene.scene_checkouts, [
-            'position_client_side_uuid',
-            'rotation_client_side_uuid',
-            'scale_client_side_uuid',
-            'surface_offset_client_side_uuid',
-            'surface_size_client_side_uuid',
-            'ui_offset_position_client_side_uuid',
-            'ui_offset_rotation_client_side_uuid',
-            'ui_scale_client_side_uuid'
-        ]);
-        for (const checkout of scene.scene_checkouts) {
-            await editorEntityCtrl.createCheckout(checkout);
+        if (scene.scene_checkouts && scene.scene_checkouts.length > 0) {
+            await getVectors(scene.scene_checkouts, [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+                'scale_client_side_uuid',
+                'surface_offset_client_side_uuid',
+                'surface_size_client_side_uuid',
+                'ui_offset_position_client_side_uuid',
+                'ui_offset_rotation_client_side_uuid',
+                'ui_scale_client_side_uuid'
+            ]);
+            for (const checkout of scene.scene_checkouts) {
+                await editorEntityCtrl.createCheckout(checkout);
+            }
         }
 
-        await getVectors(scene.scene_floors, [
-            'position_client_side_uuid',
-            'rotation_client_side_uuid',
-            'scale_client_side_uuid',
-        ]);
-        for (const floor of scene.scene_floors) {
-            await editorEntityCtrl.createFloor(floor);
+        if (scene.scene_floors && scene.scene_floors.length > 0) {
+            await getVectors(scene.scene_floors, [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+                'scale_client_side_uuid',
+            ]);
+            for (const floor of scene.scene_floors) {
+                await editorEntityCtrl.createFloor(floor);
+            }
         }
 
-        await getVectors(scene.scene_static_objects, [
-            'position_client_side_uuid',
-            'rotation_client_side_uuid',
-            'scale_client_side_uuid',
-        ]);
-        for (const staticObject of scene.scene_static_objects) {
-            await editorEntityCtrl.createStaticObject(staticObject);
+        if (scene.scene_static_objects && scene.scene_static_objects.length > 0) {
+            await getVectors(scene.scene_static_objects, [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+                'scale_client_side_uuid',
+            ]);
+            for (const staticObject of scene.scene_static_objects) {
+                await editorEntityCtrl.createStaticObject(staticObject);
+            }
         }
 
-        await getVectors(scene.scene_lights, [
-            'position_client_side_uuid',
-            'rotation_client_side_uuid',
-        ]);
-        for (const light of scene.scene_lights) {
-            await editorEntityCtrl.createLight(light);
+        if (scene.scene_lights && scene.scene_lights.length > 0) {
+            await getVectors(scene.scene_lights, [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+            ]);
+            for (const light of scene.scene_lights) {
+                await editorEntityCtrl.createLight(light);
+            }
         }
 
-        await getVectors(scene.scene_products, [
-            'position_client_side_uuid',
-            'rotation_client_side_uuid',
-            'scale_client_side_uuid',
-            'ui_offset_position_client_side_uuid', 
-            'ui_offset_rotation_client_side_uuid', 
-            'ui_scale_client_side_uuid',
-        ]);
-        await getProducts(scene.scene_products);
-        for (const product of scene.scene_products) {
-            await editorEntityCtrl.createProduct(product);
+        if (scene.scene_products && scene.scene_products.length > 0) {
+            await getVectors(scene.scene_products, [
+                'position_client_side_uuid',
+                'rotation_client_side_uuid',
+                'scale_client_side_uuid',
+                'ui_offset_position_client_side_uuid', 
+                'ui_offset_rotation_client_side_uuid', 
+                'ui_scale_client_side_uuid',
+            ]);
+            await getProducts(scene.scene_products);
+            for (const product of scene.scene_products) {
+                await editorEntityCtrl.createProduct(product);
+            }
         }
 
         ws.addEventListener(ws.EVENTS.SCENES_NEW_SCENE_PRODUCT, async (event) => {
@@ -173,10 +172,13 @@ export function useScene() {
                 }
 
                 
-                if (!recordData.position_client_side_uuid.x) {
+                if (recordData.position_client_side_uuid.x === null
+                    || recordData.position_client_side_uuid.x === undefined
+                ) {
+                    console.error(recordData.position_client_side_uuid.x, `Position not found for with ID ${id} and it cannot be saved.`, recordData);
                     continue;
                 }
-
+                console.log(recordData.position_client_side_uuid, position);
                 if (recordData.position_client_side_uuid.x !== position.x 
                  || recordData.position_client_side_uuid.y !== position.y 
                  || recordData.position_client_side_uuid.z !== position.z) {
@@ -204,6 +206,9 @@ export function useScene() {
                 }
             }
         }
+
+        const toast = useToast();
+        toast.add('Scene Saved', 5000, 'primary');
     }
 
     async function loadAllMaterials(page = 1) {
