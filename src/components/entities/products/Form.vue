@@ -43,7 +43,6 @@ import { useEditorEntity } from '../../../composables/useEditorEntity.js';
 import { useSceneSDK } from '../../../composables/useScenesSDK.js';
 import { ref } from 'vue';
 
-const toast = useToast();
 const props = defineProps({
     data: {
         type: Object,
