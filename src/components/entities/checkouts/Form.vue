@@ -67,6 +67,12 @@ const submit = async (formData, toJson, clearData, toastCtrl) => {
     const uiRotationValues = {x: params['ui_offset_rotation[x]'], y: params['ui_offset_rotation[y]'], z: params['ui_offset_rotation[z]']};
     const uiScaleValues = {x: params['ui_scale[x]'], y: params['ui_scale[y]'], z: params['ui_scale[z]']};
 
+    if (uiScaleValues.x == 0 || uiScaleValues.y == 0 || uiScaleValues.z == 0) {
+        uiScaleValues.x = 1;
+        uiScaleValues.y = 1;
+        uiScaleValues.z = 1;
+    }
+
     if (client_side_uuid.value) {
         params.surface_offset_client_side_uuid = props.data.recordData.surface_offset_client_side_uuid.client_side_uuid;
         params.surface_size_client_side_uuid = props.data.recordData.surface_size_client_side_uuid.client_side_uuid;
@@ -93,9 +99,9 @@ const submit = async (formData, toJson, clearData, toastCtrl) => {
         const ui_offset_rotation_client_side_uuid = uuidv4();
         const ui_scale_client_side_uuid = uuidv4();
 
-        await sdk.Vector3D.create({ client_side_uuid: position_client_side_uuid, ...surfaceOffsetValues });
-        await sdk.Vector3D.create({ client_side_uuid: rotation_client_side_uuid, ...uiRotationValues });
-        await sdk.Vector3D.create({ client_side_uuid: scale_client_side_uuid, ...uiOffsetValues });
+        await sdk.Vector3D.create({ client_side_uuid: position_client_side_uuid, x: 0, y: 0, z: 0 });
+        await sdk.Vector3D.create({ client_side_uuid: rotation_client_side_uuid, x: 0, y: 0, z: 0 });
+        await sdk.Vector3D.create({ client_side_uuid: scale_client_side_uuid, x: 1, y: 1, z: 1 });
         await sdk.Vector3D.create({ client_side_uuid: surface_offset_client_side_uuid, ...surfaceOffsetValues });
         await sdk.Vector3D.create({ client_side_uuid: surface_size_client_side_uuid, ...surfaceSizeValues });
         await sdk.Vector3D.create({ client_side_uuid: ui_offset_position_client_side_uuid, ...uiOffsetValues });
