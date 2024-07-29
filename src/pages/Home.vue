@@ -42,6 +42,8 @@ const create = async () => {
 
 const toggleActivate = async (scene) => {
     await sdk.Scene.update(scene.client_side_uuid, {
+        name: scene.name,
+        description: scene.description,
         active: scene.active ? 'false' : true
     })
     toastCtrl.add(`Scene ${scene.active ? 'deactivated' : 'activated'}`, 5000, 'success')
@@ -167,9 +169,12 @@ const toggleCreateSceneModal = () => {
                                             {{ scene.active ? 'Deactivate' : 'Activate' }}
                                         </button>
 
-                                        <router-link
-                                            :to="{ name: 'Editor', params: { client_side_uuid: scene.client_side_uuid } }"
-                                            class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Edit</router-link>
+                                        <div v-if="scene.active">
+                                            <router-link
+                                                :to="{ name: 'Editor', params: { client_side_uuid: scene.client_side_uuid } }"
+                                                class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Edit</router-link>
+                                        </div>
+                                        
 
                                         <button @click="destroy(scene)"
                                             class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-300">Delete</button>
